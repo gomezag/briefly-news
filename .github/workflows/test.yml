@@ -26,6 +26,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest==7.3.1
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Test with pytest
+      - name: Build and test
         run: |
-          pytest
+          sudo apt-get install make
+          make test
