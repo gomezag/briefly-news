@@ -2,11 +2,15 @@ import requests
 
 
 def get_articles(query):
-    url = f'https://www.abc.com.py/pf/api/v3/content/fetch/sections-api?query={"{" + query + "}"}'
+    squery = "{"
+    squery += ",".join(['"'+str(key)+'":"'+str(value)+'"' for key, value in query.items()])
+    squery += "}"
+    url = f'https://www.abc.com.py/pf/api/v3/content/fetch/sections-api?query={squery}'
     r = requests.get(url)
-    if r.status_code == '200':
+    if r.status_code == 200:
         return r.json()
     else:
+        print(r.status_code)
         raise requests.HTTPError(r.text)
 
 
@@ -26,6 +30,6 @@ def query(**kwargs):
     return get_articles(gen_query(**kwargs))
 
 
-
-
-
+if __name__=='__main__':
+    r = query(limit=15)
+    print(r)
