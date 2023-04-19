@@ -7,6 +7,7 @@ LLM powered news briefings
 * backend
     * database
         * serverless deployment (Xata)
+        * data models
 
     * scraper  
         * ABC (arc-pub API)
