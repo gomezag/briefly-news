@@ -3,4 +3,4 @@
 .PHONY: test
 
 test:
-	cd $(CURDIR) && pytest
+	python -m pytest
