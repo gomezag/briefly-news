@@ -1,0 +1,4 @@
+
+ABCScraper:
+  base_url: 'https://www.abc.com.py/pf/api/v3/content/fetch/sections-api?query='
+  categories: ['nacionales']
