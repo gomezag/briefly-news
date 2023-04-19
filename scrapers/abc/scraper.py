@@ -19,20 +19,11 @@ class ABCScraper:
              "uri": "/nacionales/"}
     """
 
-    def __init__(self, *args, **kwargs):
-        self._data = None
-        self._parameters = None
-        self._query = None
-
     def set_parameters(self, parameters, query_args={}):
-        self._parameters = parameters
+        self._parameters.update(parameters)
         # This is just a basic query.
-        self._query = {"arc-site": "abccolor",
-             "id": "/nacionales",
-             "limit": "5",
-             "offset": 15,
-             "sort": "display_date:desc",
-             "uri": "/nacionales/"}
+        if not self._query:
+            self._query = parameters.pop('default_query')
         self._query.update(query_args)
 
     def set_headers(self):
