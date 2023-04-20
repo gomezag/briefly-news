@@ -13,15 +13,7 @@ class Scraper:
     """
 
     def __init__(self, *args, **kwargs):
-        self._data = pd.DataFrame()
-        self._query = {}
-        self._parameters = {}
-        file = os.path.join(os.path.dirname(__file__), 'defaults.yaml')
-        with open(file) as f:
-            defaults = yaml.safe_load(f).get(self.__class__.__base__.__name__, None)
-            if not defaults:
-                raise ValueError('No base url defined for this site.')
-            self.set_parameters(defaults)
+        pass
 
     def __new__(cls, site, *args, **kwargs):
         if site == 'abc':
@@ -30,6 +22,19 @@ class Scraper:
             return super().__new__(BaseLaNacionScraper, *args, **kwargs)
         else:
             raise ValueError(f"Unknown site: {site}")
+
+    def set_parameters(self, parameters, query_args={}):
+        self._parameters.update(parameters)
+        self._query.update(query_args)
+
+    def load_parameters(self, file=None):
+        if not file:
+            file = os.path.join(os.path.dirname(__file__), 'defaults.yaml')
+        with open(file, 'r') as f:
+            defaults = yaml.safe_load(f).get(self.__class__.__base__.__name__, None)
+            if not defaults:
+                raise ValueError('No base url defined for this site.')
+            self.set_parameters(defaults)
 
     def get_daily_report(self):
         """
@@ -48,6 +53,16 @@ class Scraper:
 
     def get_categories(self, *args, **kwargs):
         raise ValueError(f'This method is not defined for {self.__class__}')
+
+    def get_headlines(self, *args, **kwargs):
+        raise ValueError(f'This method is not defined for {self.__class__}')
+
+    def load_headlines(self, *args, **kwargs):
+        try:
+            categories = pd.read_csv(f'data/{self.site}/headlines.csv')
+            return categories.to_dict()
+        except FileNotFoundError:
+            return None
 
     @property
     def endpoints(self):

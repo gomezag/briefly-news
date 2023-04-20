@@ -1,6 +1,5 @@
 ABCScraper:
   base_url: 'https://www.abc.com.py/'
-  categories: ['nacionales', ]
   endpoints:
     headlines:
       path: 'pf/api/v3/content/fetch/sections-api'

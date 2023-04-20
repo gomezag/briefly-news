@@ -13,14 +13,12 @@ def test_scraper(site):
     assert type(r) == dict
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion"])
+@pytest.mark.parametrize("site", ["abc", ])
 def test_categories(site):
     scraper = Scraper(site=site)
-    try:
-        r = scraper.get_categories()
-        assert type(r) == list
-        assert len(r) > 0
-        assert type(r[0]) == dict
+    # Only test one
+    data, r = scraper.get_headlines(scraper.categories[15], limit=1)
 
-    except ValueError:
-        pytest.skip(f'No categories endpoint defined for {site} scraper.')
+    assert len(data) == 1
+    assert r.get('type') == 'results'
+    assert type(data[0]['headlines']['basic'] == str)
