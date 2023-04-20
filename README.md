@@ -1,7 +1,15 @@
 # whatsgoingon
 LLM powered news briefings
 
-#
+## Build and test
+You need python >=3.9 with venv installed.
+    
+    make clean
+    make venv
+    make test
+
+This will create a virtual environment in the `venv` directory
+and install the necessary dependencies.
 
 ## Project Structure
 * backend
