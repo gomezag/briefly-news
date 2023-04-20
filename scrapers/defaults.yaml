@@ -18,10 +18,6 @@ ABCScraper:
         query: "undefined"
     categories:
       path: 'pf/api/v3/content/fetch/sites-menu'
-      data:
-        query:
-          hierarchy: "header-menu"
-          id: "/"
 
 LaNacionScraper:
   base_url: 'https://www.lanacion.com.py/'

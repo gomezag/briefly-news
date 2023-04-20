@@ -26,16 +26,32 @@ class ABCScraper:
         else:
             raise requests.HTTPError((r.status_code, r.text))
 
+    def get_headlines(self, category, *args, **kwargs):
+        endpoint = self.endpoints.get('headlines', None)
+        if not endpoint:
+            raise ValueError(f'Headlines endpoint not defined for {self.__class__}')
+        query = endpoint['data']
+        query['query'].update(category)
+        url = endpoint['path']
+        r = self.query(url, **query)
+        return r['content_elements']
+
     def get_categories(self, *args, **kwargs):
         endpoint = self.endpoints.get('categories', None)
         if not endpoint:
             raise ValueError(f'Category endpoint not defined for {self.__class__}')
 
-        data = self.query(endpoint['path'], **endpoint['data'])['children']
+        query_data = endpoint.get('data', {})
+        data = self.query(endpoint['path'], **query_data)['children']
         r = []
         for el in data:
             try:
-                r.append({'query': {'id': el['_id'], 'uri': el['site']['site_url']}})
-            except KeyError:
+                url = el['site']['site_url']
+                if not url.startswith('/'):
+                    url = '/'+url
+                if not url.endswith('/'):
+                    url = url+'/'
+                r.append({'id': el['_id'], 'uri': url})
+            except (KeyError, AttributeError):
                 pass
         return r
