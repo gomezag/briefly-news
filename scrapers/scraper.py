@@ -39,21 +39,20 @@ class Scraper:
         """
         pass
 
-    def query(self):
+    def query_defaults(self):
         """
         Basic query method.
         :return: A dictionary with the result of a query for the given scraper.
         """
-        pass
+        r = []
+        for endpoint in self._parameters['endpoints']:
+            r.append(self.query(endpoint['path'], **endpoint['default_query']))
+        return r
 
 
 class BaseABCScraper(ABCScraper, Scraper):
-
-    def __init__(self, *args, **kwargs):
-        super(ABCScraper, self).__init__(*args, **kwargs)
+    pass
 
 
 class BaseLaNacionScraper(LaNacionScraper, Scraper):
-
-    def __init__(self, *args, **kwargs):
-        super(LaNacionScraper, self).__init__(*args, **kwargs)
+    pass

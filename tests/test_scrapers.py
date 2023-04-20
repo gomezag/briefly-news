@@ -5,6 +5,6 @@ import pytest
 @pytest.mark.parametrize("site", ["abc", "lanacion"])
 def test_scraper(site):
     scraper = Scraper(site=site)
-    r = scraper.query()
+    r = scraper.query_defaults()
 
-    assert type(r) == dict
+    assert type(r) == dict or all([type(e) == dict for e in r])
