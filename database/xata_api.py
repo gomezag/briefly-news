@@ -1,14 +1,14 @@
 from xata.client import XataClient
-import config
 import os
+from dotenv import load_dotenv
 from .utils import get_project_root
 
 env_file = os.path.join(get_project_root(), '.env')
 
-cfg = config.Config(env_file)
+load_dotenv(env_file)
 
-XATA_API_KEY = cfg.get('XATA_API_KEY')
-XATA_DB_URL = cfg.get('XATA_DB_URL')
+XATA_API_KEY = os.getenv('XATA_API_KEY')
+XATA_DB_URL = os.getenv('XATA_DB_URL')
 
 class XataAPI:
     def __init__(self):
