@@ -1,13 +1,6 @@
 import requests
 import json
 
-DEFAULT_QUERY = {"arc-site": "abccolor",
-                 "id": "/nacionales",
-                 "limit": "5",
-                 "offset": 15,
-                 "sort": "display_date:desc",
-                 "uri": "/nacionales/"}
-
 
 class ABCScraper:
 
