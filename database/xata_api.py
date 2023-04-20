@@ -1,7 +1,7 @@
 from xata.client import XataClient
 import config
 
-cfg = config.Config('../.env')
+cfg = config.Config('.env')
 
 XATA_API_KEY = cfg.get('XATA_API_KEY')
 DB_URL = cfg.get('XATA_DB_URL')

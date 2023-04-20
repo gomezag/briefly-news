@@ -1,11 +1,9 @@
 from database.xata_api import XataAPI
-import config
 import pytest
 
 
 @pytest.fixture
 def xata_api():
-    cfg = config.Config('../.env')
     return XataAPI()
 
 
