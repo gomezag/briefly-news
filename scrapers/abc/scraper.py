@@ -86,6 +86,8 @@ class ABCScraper:
     def categories(self):
         if not self._categories:
             self._categories = self.load_categories()
+        if not self._categories:
+            self._categories = self.get_categories()
         return self._categories
 
     @property
