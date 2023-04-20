@@ -51,7 +51,7 @@
     * author
         ```
         {
-            "news_publisher":
+            "news_publisher": fk Publisher
             "author_name": str,
             "author_photo": {
                 "url": url,
