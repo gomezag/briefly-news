@@ -2,16 +2,16 @@
     * news_publisher
         ```
         {
-            "publisher_name": "",
+            "publisher_name": str,
             "logo": {
-                "url": "",
-                "alt": ""
+                "url": url,
+                "alt": str
             },
             "website": "",
             "categories": [
                 {
-                    "name": "",
-                    "description": ""
+                    "name": str,
+                    "description": str
                 }
             ]
         }
@@ -51,16 +51,17 @@
     * author
         ```
         {
-            "author_name": "",
+            "news_publisher":
+            "author_name": str,
             "author_photo": {
-                "url": "",
-                "alt": ""
+                "url": url,
+                "alt": str
             },
             "articles": [
                 {
-                    "title": "",
-                    "url": "",
-                    "date_published": ""
+                    "title": str,
+                    "url": url,
+                    "date_published": date
                 }
             ]
         }
