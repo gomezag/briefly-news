@@ -14,6 +14,8 @@ def created_record(xata_api):
     
     yield created_record['id']
     
+    xata_api.delete('test_table', created_record)
+    
 
 def test_read(xata_api, created_record):
     res = xata_api.read('test_table', created_record)
