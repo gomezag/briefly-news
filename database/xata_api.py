@@ -1,9 +1,9 @@
 from xata.client import XataClient
 import config
 import os
+from .utils import get_project_root
 
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-env_file = os.path.join(project_root, '.env')
+env_file = os.path.join(get_project_root(), '.env')
 
 cfg = config.Config(env_file)
 
