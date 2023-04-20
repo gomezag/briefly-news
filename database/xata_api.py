@@ -8,11 +8,11 @@ env_file = os.path.join(get_project_root(), '.env')
 cfg = config.Config(env_file)
 
 XATA_API_KEY = cfg.get('XATA_API_KEY')
-DB_URL = cfg.get('XATA_DB_URL')
+XATA_DB_URL = cfg.get('XATA_DB_URL')
 
 class XataAPI:
     def __init__(self):
-        self.client = XataClient(api_key=XATA_API_KEY, db_url=DB_URL)
+        self.client = XataClient(api_key=XATA_API_KEY, db_url=XATA_DB_URL)
 
 
     def create(self, table, record_dict):
