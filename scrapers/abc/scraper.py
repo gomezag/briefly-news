@@ -28,8 +28,21 @@ class ABCScraper:
             params.append(f'{key}={json.dumps(value)}')
         url += ",".join(params)
         r = requests.get(url)
-        print(url)
         if r.status_code == 200:
             return r.json()
         else:
             raise requests.HTTPError((r.status_code, r.text))
+
+    def get_categories(self, *args, **kwargs):
+        endpoint = self.endpoints.get('categories', None)
+        if not endpoint:
+            raise ValueError(f'Category endpoint not defined for {self.__class__}')
+
+        data = self.query(endpoint['path'], **endpoint['data'])['children']
+        r = []
+        for el in data:
+            try:
+                r.append({'query': {'id': el['_id'], 'uri': el['site']['site_url']}})
+            except KeyError:
+                pass
+        return r

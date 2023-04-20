@@ -39,15 +39,19 @@ class Scraper:
         """
         pass
 
-    def query_defaults(self):
+    def query(self, *args, **kwargs):
         """
         Basic query method.
         :return: A dictionary with the result of a query for the given scraper.
         """
-        r = []
-        for endpoint in self._parameters['endpoints']:
-            r.append(self.query(endpoint['path'], **endpoint['default_query']))
-        return r
+        return {}
+
+    def get_categories(self, *args, **kwargs):
+        raise ValueError(f'This method is not defined for {self.__class__}')
+
+    @property
+    def endpoints(self):
+        return self._parameters.get('endpoints', {})
 
 
 class BaseABCScraper(ABCScraper, Scraper):
