@@ -1,21 +1,37 @@
-
 ABCScraper:
-  base_url: 'https://www.abc.com.py/pf/api/v3/content/fetch/sections-api?query='
+  base_url: 'https://www.abc.com.py/'
   categories: ['nacionales', ]
-  default_query:
-    arc-site: abccolor
-    id: /nacionales
-    limit: '5'
-    offset: 15
-    sort: display_date:desc
-    uri: /nacionales/
+  endpoints:
+    headlines:
+      path: 'pf/api/v3/content/fetch/sections-api'
+      data:
+        query:
+          arc-site: "abccolor"
+          id: "/nacionales"
+          limit: '1'
+          offset: "15"
+          sort: "display_date:desc"
+          uri: "/nacionales/"
+    menu:
+      path: 'pf/api/v3/content/fetch/menu-api'
+      data:
+        query: "undefined"
+    categories:
+      path: 'pf/api/v3/content/fetch/sites-menu'
+      data:
+        query:
+          hierarchy: "header-menu"
+          id: "/"
 
 LaNacionScraper:
-  base_url: 'https://www.lanacion.com.py/pf/api/v3/content/fetch/content-search-feed?query='
+  base_url: 'https://www.lanacion.com.py/'
   categories: ['politica', ]
-  default_query:
-    feedFrom: 14
-    feedQuery: taxonomy.sites._id:'politica'
-    feedSize: 8
-    website: lanacionpy
-
+  endpoints:
+    headlines:
+      path: 'pf/api/v3/content/fetch/content-search-feed'
+      data:
+        query:
+          feedFrom: "14"
+          feedQuery: "taxonomy.sites._id:'politica'"
+          feedSize: "1"
+          website: "lanacionpy"

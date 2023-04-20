@@ -39,21 +39,24 @@ class Scraper:
         """
         pass
 
-    def query(self):
+    def query(self, *args, **kwargs):
         """
         Basic query method.
         :return: A dictionary with the result of a query for the given scraper.
         """
-        pass
+        return {}
+
+    def get_categories(self, *args, **kwargs):
+        raise ValueError(f'This method is not defined for {self.__class__}')
+
+    @property
+    def endpoints(self):
+        return self._parameters.get('endpoints', {})
 
 
 class BaseABCScraper(ABCScraper, Scraper):
-
-    def __init__(self, *args, **kwargs):
-        super(ABCScraper, self).__init__(*args, **kwargs)
+    pass
 
 
 class BaseLaNacionScraper(LaNacionScraper, Scraper):
-
-    def __init__(self, *args, **kwargs):
-        super(LaNacionScraper, self).__init__(*args, **kwargs)
+    pass
