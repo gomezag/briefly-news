@@ -26,6 +26,8 @@ jobs:
           python -m pip install --upgrade pip
           make clean
           make venv
+          echo XATA_API_KEY=${secrets.XATA_API_KEY} >> .env
+          echo DB_URL=${secrets.DB_URL} >> .env
       - name: Build and test
         run: |
           make test
