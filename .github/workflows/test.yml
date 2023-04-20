@@ -25,7 +25,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           make clean
-          make install
+          make venv
       - name: Build and test
         run: |
           make test
