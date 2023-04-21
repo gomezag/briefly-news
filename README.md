@@ -72,3 +72,5 @@ git merge --no-ff alvaro/dev -m "Merged alvaro/dev with squashed commits from al
 git push origin main
 ```
 This will create a single commit on the `main` branch with all the changes from `alvaro/dev`, including the squashed changes from `alvaro/feature/admin`.
+
+![heya](https://user-images.githubusercontent.com/12618690/233628803-6d13b39b-839b-479b-9760-da9fe9bfa75f.jpg)
