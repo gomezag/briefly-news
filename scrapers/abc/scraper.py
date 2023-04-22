@@ -1,27 +1,13 @@
 import pandas as pd
 import requests
 import json
+import urllib.parse as urlparse
 
 
-class ABCScraper:
-    def __init__(self, *args, **kwargs):
-        self.site = 'abc'
-        self._categories = None
-        self._data = pd.DataFrame()
-        self._query = {}
-        self._parameters = {}
-        self.load_parameters()
+class ArcPublishingScraper:
 
     def set_headers(self):
         pass
-
-    def load_categories(self, *args, **kwargs):
-        try:
-            categories = pd.read_csv(f'data/{self.site}/categories.csv')
-            categories = [{'id': cat[1].values[1], 'uri': cat[1].values[2]} for cat in categories.iterrows()]
-            return categories
-        except FileNotFoundError:
-            return None
 
     def query(self, endpoint, **query_args):
         query = self._query
@@ -37,6 +23,16 @@ class ABCScraper:
             return r.json()
         else:
             raise requests.HTTPError((r.status_code, r.text))
+
+
+class ABCScraper(ArcPublishingScraper):
+    def __init__(self, *args, **kwargs):
+        self.site = 'abc'
+        self._categories = None
+        self._data = pd.DataFrame()
+        self._query = {}
+        self._parameters = {}
+        self.load_parameters()
 
     def get_headlines(self, category, *args, **kwargs):
         """
@@ -54,7 +50,34 @@ class ABCScraper:
         url = endpoint['path']
         r = self.query(url, **query)
         headlines = r['content_elements']
-        return headlines, r
+        articles = []
+        for head in headlines:
+            title = head['headlines']['basic']
+            subtitle = head['subheadlines']['basic']
+            # published = head['publish_date']
+            # updated = head['last_updated_date']
+            date = head['display_date']
+            # first_publish = head['publish_date']
+            url = urlparse.urljoin(self._parameters['base_url'], head['website_url'])
+            owner = head['owner']['id']
+            source = head['source']['name']
+            try:
+                authors = [c['_id'] for c in head['credits']['by'] if c['type'] == 'author']
+            except KeyError:
+                authors = []
+            id = head['_id']
+            articles.append(dict(
+                title=title,
+                subtitle=subtitle,
+                date=date,
+                url=url,
+                owner=owner,
+                source=source,
+                authors=authors,
+                id=id
+            ))
+
+        return articles, r
 
     def get_categories(self, *args, **kwargs):
         """
@@ -81,15 +104,3 @@ class ABCScraper:
             except (KeyError, AttributeError):
                 pass
         return r
-
-    @property
-    def categories(self):
-        if not self._categories:
-            self._categories = self.load_categories()
-        if not self._categories:
-            self._categories = self.get_categories()
-        return self._categories
-
-    @property
-    def parameters(self):
-        return self._parameters

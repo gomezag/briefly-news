@@ -2,6 +2,8 @@
 VENV_DIR := venv
 REQUIREMENTS_FILE := requirements.txt
 
+.PHONY: venv
+
 # Create virtual environment and install dependencies
 venv:
 	@echo "Creating virtual environment..."

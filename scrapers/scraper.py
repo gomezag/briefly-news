@@ -64,9 +64,29 @@ class Scraper:
         except FileNotFoundError:
             return None
 
+    def load_categories(self, *args, **kwargs):
+        try:
+            categories = pd.read_csv(f'data/{self.site}/categories.csv')
+            categories = [{'id': cat[1].values[1], 'uri': cat[1].values[2]} for cat in categories.iterrows()]
+            return categories
+        except FileNotFoundError:
+            return None
+
     @property
     def endpoints(self):
         return self._parameters.get('endpoints', {})
+
+    @property
+    def categories(self):
+        if not self._categories:
+            self._categories = self.load_categories()
+        if not self._categories:
+            self._categories = self.get_categories()
+        return self._categories
+
+    @property
+    def parameters(self):
+        return self._parameters
 
 
 class BaseABCScraper(ABCScraper, Scraper):

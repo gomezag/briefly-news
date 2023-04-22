@@ -1,5 +1,14 @@
 from scrapers.scraper import Scraper
 import pytest
+import urllib.parse as urlparse
+
+
+def validate_url(url):
+    try:
+        r = urlparse.urlparse(url)
+        return all([r.scheme, r.netloc])
+    except:
+        return False
 
 
 @pytest.mark.parametrize("site", ["abc", "lanacion"])
@@ -17,8 +26,11 @@ def test_scraper(site):
 def test_categories(site):
     scraper = Scraper(site=site)
     # Only test one
-    data, r = scraper.get_headlines(scraper.categories[15], limit=1)
-
+    data, r = scraper.get_headlines(scraper.categories[16], limit=1)
     assert len(data) == 1
     assert r.get('type') == 'results'
-    assert type(data[0]['headlines']['basic'] == str)
+    story = data[0]
+    assert type(story['title'] == str)
+    assert type(story['authors'] == list)
+    assert type(story['source'] == str)
+    assert validate_url(story['url'])
