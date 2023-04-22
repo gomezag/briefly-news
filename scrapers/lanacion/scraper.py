@@ -4,7 +4,7 @@ import pandas as pd
 class LaNacionScraper(ArcPublishingScraper):
 
     def __init__(self, *args, **kwargs):
-        self.site = 'abc'
+        self.site = 'lanacion'
         self._categories = None
         self._data = pd.DataFrame()
         self._query = {}
