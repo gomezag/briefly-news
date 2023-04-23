@@ -22,3 +22,6 @@ test:
 	@pip install pytest
 	@echo "Running pytest with additional arguments: $(ARGS)"
 	@python -m pytest $(ARGS)
+
+scrape:
+    @python scrape.py

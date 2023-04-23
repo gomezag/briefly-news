@@ -38,12 +38,3 @@ def test_headlines(scraper, site):
     assert type(story['authors'] == list)
     assert type(story['source'] == str)
     assert validate_url(story['url'])
-
-
-@pytest.mark.parametrize("site", ["abc", ])
-def test_scrape(scraper, site, scrape, request):
-    if not request.node.get_closest_marker(scrape):
-        pytest.skip('Skipping scrape method.')
-    for category in scraper.categories:
-        headlines = scraper.get_headlines(category)
-

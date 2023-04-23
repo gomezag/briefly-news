@@ -59,12 +59,14 @@ class Scraper:
             current = self._db.update('news_publisher', current['id'], new)
         return current
 
-    def load_headlines(self, *args, **kwargs):
-        try:
-            categories = pd.read_csv(f'data/{self.site}/headlines.csv')
-            return categories.to_dict()
-        except FileNotFoundError:
-            return None
+    def save_article(self, article):
+        current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''), 'publisher.publisher_name': self.site})
+        if current:
+            current = current[0]
+            self._db.update('news_article', current['id'], article)
+        else:
+            self._db.create('news_article', article)
+
 
     @property
     def endpoints(self):

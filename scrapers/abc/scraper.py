@@ -48,7 +48,8 @@ class ABCScraper(ArcPublishingScraper):
                 owner=owner,
                 source=source,
                 authors=authors,
-                id=id
+                publisher=self.parameters['id'],
+                article_id=id
             ))
 
         return articles, r

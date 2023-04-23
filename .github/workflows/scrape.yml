@@ -1,0 +1,27 @@
+name: Scrape
+
+on:
+  schedule:
+    - cron: '30 * * * *'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Setup secrets
+        run: |
+          echo 'XATA_API_KEY = "${{secrets.XATA_API_KEY}}"' >> .env
+          echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
+      - name: Scrape sites
+        run: |
+          make scrape
