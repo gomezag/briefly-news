@@ -17,7 +17,7 @@ def test_scraper(site):
     endpoint = scraper.endpoints.get('headlines', None)
     if not endpoint:
         pytest.skip('No headlines endpoint defined for this scraper')
-    r = scraper.query(endpoint['path'], **endpoint['data'])
+    r = scraper.query(endpoint['path'], **endpoint['data']).json()
 
     assert type(r) == dict
 

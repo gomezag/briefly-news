@@ -13,14 +13,14 @@ class ArcPublishingScraper:
         query = self._query
         if query_args:
             query.update(**query_args)
-        url = f'{self._parameters["base_url"]}{endpoint}?'
+        url = f'{urlparse.urljoin(self._parameters["base_url"], endpoint)}?'
         params = []
         for key, value in query.items():
             params.append(f'{key}={json.dumps(value)}')
-        url += ",".join(params)
+        url += "&".join(params)
         r = requests.get(url)
         if r.status_code == 200:
-            return r.json()
+            return r
         else:
             raise requests.HTTPError((r.status_code, r.text))
 
@@ -48,7 +48,7 @@ class ABCScraper(ArcPublishingScraper):
         query['query'].update(category)
         query['query'].update(**kwargs)
         url = endpoint['path']
-        r = self.query(url, **query)
+        r = self.query(url, **query).json()
         headlines = r['content_elements']
         articles = []
         for head in headlines:
@@ -91,7 +91,7 @@ class ABCScraper(ArcPublishingScraper):
             raise ValueError(f'Category endpoint not defined for {self.__class__}')
 
         query_data = endpoint.get('data', {})
-        data = self.query(endpoint['path'], **query_data)['children']
+        data = self.query(endpoint['path'], **query_data).json()['children']
         r = []
         for el in data:
             try:
