@@ -11,10 +11,11 @@ def xata_api():
 def created_record(xata_api):
     created_record = xata_api.create('test_table', {'name': 'test_name'})
     assert created_record['id'] is not None
-    
-    yield created_record['id']
-    
-    xata_api.delete('test_table', created_record)
+
+    try:
+        yield created_record['id']
+    finally:
+        xata_api.delete('test_table', created_record['id'])
     
 
 def test_read(xata_api, created_record):

@@ -1,9 +1,12 @@
 import os
+import json
 import yaml
 import pandas as pd
 
-from .abc.scraper import ABCScraper
-from .lanacion.scraper import LaNacionScraper
+from scrapers.abc.scraper import ABCScraper
+from scrapers.lanacion.scraper import LaNacionScraper
+from database.xata_api import XataAPI
+from database.exceptions import OperationError
 
 
 class Scraper:
@@ -11,18 +14,6 @@ class Scraper:
     Scraper class to be used by the crawler jobs.
         :param site: Can be only 'abc' for the moment.
     """
-
-    def __init__(self, *args, **kwargs):
-        self._data = pd.DataFrame()
-        self._query = {}
-        self._parameters = {}
-        file = os.path.join(os.path.dirname(__file__), 'defaults.yaml')
-        with open(file) as f:
-            defaults = yaml.safe_load(f).get(self.__class__.__base__.__name__, None)
-            if not defaults:
-                raise ValueError('No base url defined for this site.')
-            self.set_parameters(defaults)
-
     def __new__(cls, site, *args, **kwargs):
         if site == 'abc':
             return super().__new__(BaseABCScraper, *args, **kwargs)
@@ -31,29 +22,85 @@ class Scraper:
         else:
             raise ValueError(f"Unknown site: {site}")
 
-    def get_daily_report(self):
-        """
-        A daily report generator.
-        :return: A pandas DataFrame with articles as plain rows of consecutive text,
-        in the way that is going to be presented to the Embeddings API.
-        """
-        pass
+    def set_parameters(self, parameters, query_args={}):
+        categories = parameters.pop('categories')
+        endpoints = parameters.pop('endpoints')
+        self._categories = [json.loads(cat.replace("'", '"')) for cat in categories]
+        r = dict()
+        for endpoint in endpoints:
+            key, value = endpoint.split('=')
+            value = json.loads(value)
+            r.update({key:value})
+        parameters.update(dict(endpoints=r))
+        self._parameters.update(parameters)
+        self._query.update(query_args)
 
-    def query(self):
-        """
-        Basic query method.
-        :return: A dictionary with the result of a query for the given scraper.
-        """
-        pass
+    def load_parameters(self):
+        params = self._db.query('news_publisher', filter={'publisher_name': 'abc'})[0]
+        self.set_parameters(params)
+
+    def save_metadata(self):
+        try:
+            current = self._db.query('news_publisher', filter={'publisher_name': self.site})[0]
+        except IndexError:
+            current = self._db.create('news_publisher', {'publisher_name': self.site})
+        record = {'publisher_name': str(self.site),
+                 'website': str(self.parameters.get('website', None)),
+                 'categories': [str(cat) for cat in self.categories],
+                 'endpoints': [f"{key}={json.dumps(value)}" for key, value in self.endpoints.items()]
+                  }
+        if not current:
+            try:
+                current = self._db.create('news_publisher', record)
+            except OperationError as e:
+                raise e
+        else:
+            new = record
+            current = self._db.update('news_publisher', current['id'], new)
+        return current
+
+    def save_article(self, article):
+        current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''), 'publisher.publisher_name': self.site})
+        if current:
+            current = current[0]
+            self._db.update('news_article', current['id'], article)
+        else:
+            self._db.create('news_article', article)
 
 
-class BaseABCScraper(ABCScraper, Scraper):
+    @property
+    def endpoints(self):
+        return self._parameters.get('endpoints', {})
 
+    @property
+    def categories(self):
+        if not self._categories:
+            self._categories = self.load_parameters()
+        if not self._categories:
+            try:
+                self._categories = self.get_categories()
+            except AttributeError:
+                self._categories = []
+        return self._categories
+
+    @property
+    def parameters(self):
+        return self._parameters
+
+
+class BaseScraper(Scraper):
     def __init__(self, *args, **kwargs):
-        super(ABCScraper, self).__init__(*args, **kwargs)
+        self._categories = None
+        self._data = pd.DataFrame()
+        self._query = {}
+        self._parameters = {}
+        self._db = XataAPI()
+        self.load_parameters()
 
 
-class BaseLaNacionScraper(LaNacionScraper, Scraper):
+class BaseABCScraper(ABCScraper, BaseScraper):
+    pass
 
-    def __init__(self, *args, **kwargs):
-        super(LaNacionScraper, self).__init__(*args, **kwargs)
+
+class BaseLaNacionScraper(LaNacionScraper, BaseScraper):
+    pass

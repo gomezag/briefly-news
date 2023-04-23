@@ -2,6 +2,8 @@
 VENV_DIR := venv
 REQUIREMENTS_FILE := requirements.txt
 
+.PHONY: venv
+
 # Create virtual environment and install dependencies
 venv:
 	@echo "Creating virtual environment..."
@@ -20,3 +22,7 @@ test:
 	@pip install pytest
 	@echo "Running pytest with additional arguments: $(ARGS)"
 	@python -m pytest $(ARGS)
+
+# Scrape data
+scrape:
+	@python scrape.py
