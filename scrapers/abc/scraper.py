@@ -32,7 +32,7 @@ class ABCScraper(ArcPublishingScraper):
             # updated = head['last_updated_date']
             date = head['display_date']
             # first_publish = head['publish_date']
-            url = urlparse.urljoin(self._parameters['base_url'], head['website_url'])
+            url = urlparse.urljoin(self._parameters['website'], head['website_url'])
             owner = head['owner']['id']
             source = head['source']['name']
             try:

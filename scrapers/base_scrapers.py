@@ -11,7 +11,7 @@ class ArcPublishingScraper:
         query = self._query
         if query_args:
             query.update(**query_args)
-        url = f'{urlparse.urljoin(self._parameters["base_url"], endpoint)}?'
+        url = f'{urlparse.urljoin(self._parameters["website"], endpoint)}?'
         params = []
         for key, value in query.items():
             params.append(f'{key}={json.dumps(value)}')

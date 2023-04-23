@@ -11,10 +11,10 @@ load_dotenv(env_file)
 XATA_API_KEY = os.getenv('XATA_API_KEY')
 XATA_DB_URL = os.getenv('XATA_DB_URL')
 
+
 class XataAPI:
     def __init__(self):
         self.client = XataClient(api_key=XATA_API_KEY, db_url=XATA_DB_URL)
-
 
     def create(self, table, record_dict):
         created_record = self.client.records().insertRecord(table, record_dict).json()
@@ -22,7 +22,6 @@ class XataAPI:
             raise OperationError(f"{created_record.get('message')}")
         record_dict.update({"id": created_record['id']})
         return record_dict
-
 
     def read(self, table, record_id):
         record = self.client.records().getRecord(table, record_id)
@@ -40,7 +39,14 @@ class XataAPI:
                 raise FileNotFoundError('Registro no encontrado')
         except Exception as e:
             raise OperationError(e)
-    
+
+    def update(self, table, record_id, record):
+        try:
+            r = self.client.records().updateRecordWithID(table, record_id, record)
+        except Exception as e:
+            raise OperationError(e)
+        return r
+
     def delete(self, table, record_id):
         r = self.client.records().deleteRecord(table, record_id)
         if r.status_code != 204:

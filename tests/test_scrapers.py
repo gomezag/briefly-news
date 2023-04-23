@@ -1,4 +1,3 @@
-from scrapers.scraper import Scraper
 import pytest
 import urllib.parse as urlparse
 
@@ -12,8 +11,7 @@ def validate_url(url):
 
 
 @pytest.mark.parametrize("site", ["abc", "lanacion"])
-def test_scraper(site):
-    scraper = Scraper(site=site)
+def test_scraper(scraper, site):
     endpoint = scraper.endpoints.get('headlines', None)
     if not endpoint:
         pytest.skip('No headlines endpoint defined for this scraper')
@@ -22,8 +20,7 @@ def test_scraper(site):
 
 
 @pytest.mark.parametrize("site", ["abc", ])
-def test_categories(site):
-    scraper = Scraper(site=site)
+def test_categories(scraper, site):
     cats = scraper.categories
     assert type(cats) == list
     assert type(cats[0]) == dict
@@ -31,8 +28,7 @@ def test_categories(site):
 
 
 @pytest.mark.parametrize("site", ["abc", ])
-def test_headlines(site):
-    scraper = Scraper(site=site)
+def test_headlines(scraper, site):
     # Only test one
     data, r = scraper.get_headlines(scraper.categories[16], limit=1)
     assert len(data) == 1
@@ -42,4 +38,12 @@ def test_headlines(site):
     assert type(story['authors'] == list)
     assert type(story['source'] == str)
     assert validate_url(story['url'])
+
+
+@pytest.mark.parametrize("site", ["abc", ])
+def test_scrape(scraper, site, scrape, request):
+    if not request.node.get_closest_marker(scrape):
+        pytest.skip('Skipping scrape method.')
+    for category in scraper.categories:
+        headlines = scraper.get_headlines(category)
 
