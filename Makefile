@@ -23,5 +23,6 @@ test:
 	@echo "Running pytest with additional arguments: $(ARGS)"
 	@python -m pytest $(ARGS)
 
+# Scrape data
 scrape:
-    @python scrape.py
+	@python scrape.py
