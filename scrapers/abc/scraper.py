@@ -5,6 +5,7 @@ from scrapers.base_scrapers import ArcPublishingScraper
 class ABCScraper(ArcPublishingScraper):
     def __init__(self, *args, **kwargs):
         self.site = 'abc'
+        self.site_id = 'abc'
         super().__init__(*args, **kwargs)
 
     def get_headlines(self, category, *args, **kwargs):

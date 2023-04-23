@@ -1,10 +1,12 @@
 import os
+import json
 import yaml
 import pandas as pd
 
 from scrapers.abc.scraper import ABCScraper
 from scrapers.lanacion.scraper import LaNacionScraper
 from database.xata_api import XataAPI
+from database.exceptions import OperationError
 
 
 class Scraper:
@@ -54,6 +56,17 @@ class Scraper:
     def get_headlines(self, *args, **kwargs):
         raise ValueError(f'This method is not defined for {self.__class__}')
 
+    def save_metadata(self):
+        current = self._db.query('news_publisher', filter={'publisher_name':self.site})
+        if not current:
+            try:
+                current = self._db.create('news_publisher', {'publisher_name': str(self.site),
+                                                             'website': str(self.parameters.get('base_url', None)),
+                                                             'categories': [str(cat) for cat in self.categories]})
+            except OperationError as e:
+                raise e
+        return current
+
     def load_headlines(self, *args, **kwargs):
         try:
             categories = pd.read_csv(f'data/{self.site}/headlines.csv')
@@ -63,8 +76,8 @@ class Scraper:
 
     def load_categories(self, *args, **kwargs):
         try:
-            categories = pd.read_csv(f'data/{self.site}/categories.csv')
-            categories = [{'id': cat[1].values[1], 'uri': cat[1].values[2]} for cat in categories.iterrows()]
+            r = self._db.query('news_publisher', filter={'publisher_name': self.site})
+            categories = [json.loads(cat.replace("'", '"')) for cat in r[0]['categories']]
             return categories
         except FileNotFoundError:
             return None

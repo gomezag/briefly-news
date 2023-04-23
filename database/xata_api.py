@@ -30,9 +30,19 @@ class XataAPI:
             return record.json()
 
         return None
-    
+
+    def query(self, table, **parms):
+        try:
+            records = self.client.query(table, **parms)
+            if not records.get('message', None):
+                return records['records']
+            else:
+                raise FileNotFoundError('Registro no encontrado')
+        except Exception as e:
+            raise OperationError(e)
     
     def delete(self, table, record_id):
         r = self.client.records().deleteRecord(table, record_id)
         if r.status_code != 204:
             raise OperationError(r.json()['message'])
+        return r

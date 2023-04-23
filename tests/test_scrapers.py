@@ -18,7 +18,6 @@ def test_scraper(site):
     if not endpoint:
         pytest.skip('No headlines endpoint defined for this scraper')
     r = scraper.query(endpoint['path'], **endpoint['data']).json()
-
     assert type(r) == dict
 
 
@@ -28,6 +27,7 @@ def test_categories(site):
     cats = scraper.categories
     assert type(cats) == list
     assert type(cats[0]) == dict
+    scraper.save_metadata()
 
 
 @pytest.mark.parametrize("site", ["abc", ])
@@ -42,3 +42,4 @@ def test_headlines(site):
     assert type(story['authors'] == list)
     assert type(story['source'] == str)
     assert validate_url(story['url'])
+
