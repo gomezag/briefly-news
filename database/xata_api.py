@@ -1,4 +1,5 @@
 from xata.client import XataClient
+from database.exceptions import OperationError
 import os
 from dotenv import load_dotenv
 from .utils import get_project_root
@@ -17,8 +18,9 @@ class XataAPI:
 
     def create(self, table, record_dict):
         created_record = self.client.records().insertRecord(table, record_dict).json()
+        if created_record.get('message', None):
+            raise OperationError(f"{created_record.get('message')}")
         record_dict.update({"id": created_record['id']})
-
         return record_dict
 
 
@@ -31,4 +33,6 @@ class XataAPI:
     
     
     def delete(self, table, record_id):
-        return self.client.records().deleteRecord(table, record_id)
+        r = self.client.records().deleteRecord(table, record_id)
+        if r.status_code != 204:
+            raise OperationError(r.json()['message'])
