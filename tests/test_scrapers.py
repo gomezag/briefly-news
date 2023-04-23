@@ -34,7 +34,7 @@ def test_headlines(scraper, site):
     assert len(data) == 1
     assert r.get('type') == 'results'
     story = data[0]
-    assert type(story['title'] == str)
-    assert type(story['authors'] == list)
-    assert type(story['source'] == str)
+    assert type(story['title']) == str
+    assert type(story['authors']) == list
+    assert type(story['source']) == str
     assert validate_url(story['url'])

@@ -36,7 +36,7 @@ class XataAPI:
             if not records.get('message', None):
                 return records['records']
             else:
-                raise FileNotFoundError('Registro no encontrado')
+                raise FileNotFoundError('Record not found')
         except Exception as e:
             raise OperationError(e)
 
