@@ -1,13 +1,8 @@
-from ..abc.scraper import ArcPublishingScraper
-import pandas as pd
+from scrapers.base_scrapers import ArcPublishingScraper
 
 
 class LaNacionScraper(ArcPublishingScraper):
 
     def __init__(self, *args, **kwargs):
         self.site = 'lanacion'
-        self._categories = None
-        self._data = pd.DataFrame()
-        self._query = {}
-        self._parameters = {}
-        self.load_parameters()
+        super().__init__(*args, **kwargs)

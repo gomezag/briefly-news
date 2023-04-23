@@ -25,6 +25,14 @@ def test_scraper(site):
 @pytest.mark.parametrize("site", ["abc", ])
 def test_categories(site):
     scraper = Scraper(site=site)
+    cats = scraper.categories
+    assert type(cats) == list
+    assert type(cats[0]) == dict
+
+
+@pytest.mark.parametrize("site", ["abc", ])
+def test_headlines(site):
+    scraper = Scraper(site=site)
     # Only test one
     data, r = scraper.get_headlines(scraper.categories[16], limit=1)
     assert len(data) == 1

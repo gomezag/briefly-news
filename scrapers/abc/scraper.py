@@ -1,38 +1,11 @@
-import pandas as pd
-import requests
-import json
 import urllib.parse as urlparse
-
-
-class ArcPublishingScraper:
-
-    def set_headers(self):
-        pass
-
-    def query(self, endpoint, **query_args):
-        query = self._query
-        if query_args:
-            query.update(**query_args)
-        url = f'{urlparse.urljoin(self._parameters["base_url"], endpoint)}?'
-        params = []
-        for key, value in query.items():
-            params.append(f'{key}={json.dumps(value)}')
-        url += "&".join(params)
-        r = requests.get(url)
-        if r.status_code == 200:
-            return r
-        else:
-            raise requests.HTTPError((r.status_code, r.text))
+from scrapers.base_scrapers import ArcPublishingScraper
 
 
 class ABCScraper(ArcPublishingScraper):
     def __init__(self, *args, **kwargs):
         self.site = 'abc'
-        self._categories = None
-        self._data = pd.DataFrame()
-        self._query = {}
-        self._parameters = {}
-        self.load_parameters()
+        super().__init__(*args, **kwargs)
 
     def get_headlines(self, category, *args, **kwargs):
         """

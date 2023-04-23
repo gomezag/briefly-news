@@ -2,8 +2,9 @@ import os
 import yaml
 import pandas as pd
 
-from .abc.scraper import ABCScraper
-from .lanacion.scraper import LaNacionScraper
+from scrapers.abc.scraper import ABCScraper
+from scrapers.lanacion.scraper import LaNacionScraper
+from database.xata_api import XataAPI
 
 
 class Scraper:
@@ -11,10 +12,6 @@ class Scraper:
     Scraper class to be used by the crawler jobs.
         :param site: Can be only 'abc' for the moment.
     """
-
-    def __init__(self, *args, **kwargs):
-        pass
-
     def __new__(cls, site, *args, **kwargs):
         if site == 'abc':
             return super().__new__(BaseABCScraper, *args, **kwargs)
@@ -89,9 +86,19 @@ class Scraper:
         return self._parameters
 
 
-class BaseABCScraper(ABCScraper, Scraper):
+class BaseScraper(Scraper):
+    def __init__(self, *args, **kwargs):
+        self._categories = None
+        self._data = pd.DataFrame()
+        self._query = {}
+        self._parameters = {}
+        self.load_parameters()
+        self._db = XataAPI()
+
+
+class BaseABCScraper(ABCScraper, BaseScraper):
     pass
 
 
-class BaseLaNacionScraper(LaNacionScraper, Scraper):
+class BaseLaNacionScraper(LaNacionScraper, BaseScraper):
     pass
