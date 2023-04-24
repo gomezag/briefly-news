@@ -25,4 +25,5 @@ test:
 
 # Scrape data
 scrape:
-	@python scrape.py
+	@echo "Scraping to branch $(BRANCH)"
+	@python scrape.py $(BRANCH) $(LIMIT)

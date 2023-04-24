@@ -16,11 +16,12 @@ class Scraper:
     """
     def __new__(cls, site, *args, **kwargs):
         if site == 'abc':
-            return super().__new__(BaseABCScraper, *args, **kwargs)
+            inst = super().__new__(BaseABCScraper)
         elif site == 'lanacion':
-            return super().__new__(BaseLaNacionScraper, *args, **kwargs)
+            inst = super().__new__(BaseLaNacionScraper)
         else:
             raise ValueError(f"Unknown site: {site}")
+        return inst
 
     def set_parameters(self, parameters, query_args={}):
         categories = parameters.pop('categories')
