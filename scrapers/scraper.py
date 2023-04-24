@@ -94,7 +94,7 @@ class BaseScraper(Scraper):
         self._data = pd.DataFrame()
         self._query = {}
         self._parameters = {}
-        self._db = XataAPI()
+        self._db = XataAPI(branch=kwargs.pop('branch', 'main'))
         self.load_parameters()
 
 
