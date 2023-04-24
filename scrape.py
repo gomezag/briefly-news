@@ -3,7 +3,7 @@ from scrapers import Scraper
 
 def scrape_headlines(scraper):
     for category in scraper.categories:
-        headlines = scraper.get_headlines(category, limit=15)
+        headlines, r = scraper.get_headlines(category, limit=15)
         for article in headlines:
             scraper.save_article(article)
 
