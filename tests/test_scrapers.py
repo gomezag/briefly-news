@@ -38,3 +38,12 @@ def test_headlines(scraper, site):
     assert type(story['authors']) == list
     assert type(story['source']) == str
     assert validate_url(story['url'])
+
+
+@pytest.mark.parametrize("site", ["abc", ])
+def test_article(scraper, site):
+    arts, r = scraper.get_headlines(scraper.categories[16], limit=1)
+    art = arts[0]
+    body, r = scraper.get_article_body(art)
+    assert type(body) == str
+    scraper.save_article(art)

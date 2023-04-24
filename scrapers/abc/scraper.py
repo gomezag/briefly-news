@@ -1,4 +1,8 @@
+import json
+
+from bs4 import BeautifulSoup
 import urllib.parse as urlparse
+
 from scrapers.base_scrapers import ArcPublishingScraper
 
 
@@ -72,10 +76,25 @@ class ABCScraper(ArcPublishingScraper):
             try:
                 url = el['site']['site_url']
                 if not url.startswith('/'):
-                    url = '/'+url
+                    url = '/' + url
                 if not url.endswith('/'):
-                    url = url+'/'
+                    url = url + '/'
                 r.append({'id': el['_id'], 'uri': url})
             except (KeyError, AttributeError):
                 pass
         return r
+
+    def get_article_body(self, article):
+        r = self.query(article['url'])
+        soup = BeautifulSoup(r.text, 'html.parser')
+        errors = []
+        for script in soup.find_all('script'):
+            text = script.text
+            if text.find('"articleBody"'):
+                try:
+                    article_data = json.loads(text)
+                    print(article_data)
+                    return article_data['articleBody'], article_data
+                except Exception as e:
+                    errors.append(e)
+        return None, errors
