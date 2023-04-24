@@ -12,9 +12,10 @@ XATA_API_KEY = os.getenv('XATA_API_KEY')
 XATA_DB_URL = os.getenv('XATA_DB_URL')
 
 
-class XataAPI:
-    def __init__(self):
-        self.client = XataClient(api_key=XATA_API_KEY, db_url=XATA_DB_URL)
+class XataAPI(object):
+    def __init__(self, *args, **kwargs):
+        self.branch = kwargs.pop('branch', 'main')
+        self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
 
     def create(self, table, record_dict):
         created_record = self.client.records().insertRecord(table, record_dict).json()
