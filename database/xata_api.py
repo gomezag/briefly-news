@@ -16,20 +16,6 @@ class XataAPI:
     def __init__(self):
         self.client = XataClient(api_key=XATA_API_KEY, db_url=XATA_DB_URL)
 
-    def create(self, table, record_dict):
-        created_record = self.client.records().insertRecord(table, record_dict).json()
-        if created_record.get('message', None):
-            raise OperationError(f"{created_record.get('message')}")
-        record_dict.update({"id": created_record['id']})
-        return record_dict
-
-    def read(self, table, record_id):
-        record = self.client.records().getRecord(table, record_id)
-        if record:
-            return record.json()
-
-        return None
-
     def query(self, table, **params):
         try:
             records = self.client.query(table, **params)
@@ -39,6 +25,21 @@ class XataAPI:
                 raise FileNotFoundError('Record not found')
         except Exception as e:
             raise OperationError(e)
+
+    def create(self, table, record_dict):
+        created_record = self.client.records().insertRecord(table, record_dict).json()
+        if created_record.get('message', None):
+            raise OperationError(f"{created_record.get('message')}")
+            
+        record_dict.update({"id": created_record['id']})
+        return record_dict
+
+    def read(self, table, record_id):
+        record = self.client.records().getRecord(table, record_id)
+        if record:
+            return record.json()
+
+        return None
 
     def update(self, table, record_id, record):
         try:
@@ -56,10 +57,10 @@ class XataAPI:
     def get_or_create(self, table, record_dict):
         try:
             record = self.query(table, **record_dict)
-            if record:
-                return record[0]
-            else:
-                return self.create(table, record_dict)
+            created = False
+
+        except FileNotFoundError:
+            record = self.create(table, record_dict)
+            created = True
         
-        except Exception as e:
-            raise OperationError(e)
+        return record, created
