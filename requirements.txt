@@ -21,3 +21,4 @@ tzdata==2023.3
 urllib3==1.26.15
 xata==0.9.0
 yarl==1.8.2
+beautifulsoup4==4.12.0
