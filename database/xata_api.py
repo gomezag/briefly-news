@@ -30,9 +30,9 @@ class XataAPI:
 
         return None
 
-    def query(self, table, **parms):
+    def query(self, table, **params):
         try:
-            records = self.client.query(table, **parms)
+            records = self.client.query(table, **params)
             if not records.get('message', None):
                 return records['records']
             else:
@@ -52,3 +52,14 @@ class XataAPI:
         if r.status_code != 204:
             raise OperationError(r.json()['message'])
         return r
+    
+    def get_or_create(self, table, record_dict):
+        try:
+            record = self.query(table, **record_dict)
+            if record:
+                return record[0]
+            else:
+                return self.create(table, record_dict)
+        
+        except Exception as e:
+            raise OperationError(e)
