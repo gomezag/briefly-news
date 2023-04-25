@@ -16,11 +16,12 @@ class Scraper:
     """
     def __new__(cls, site, *args, **kwargs):
         if site == 'abc':
-            return super().__new__(BaseABCScraper, *args, **kwargs)
+            inst = super().__new__(BaseABCScraper)
         elif site == 'lanacion':
-            return super().__new__(BaseLaNacionScraper, *args, **kwargs)
+            inst = super().__new__(BaseLaNacionScraper)
         else:
             raise ValueError(f"Unknown site: {site}")
+        return inst
 
     def set_parameters(self, parameters, query_args={}):
         categories = parameters.pop('categories')
@@ -63,6 +64,12 @@ class Scraper:
         current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''), 'publisher.publisher_name': self.site})
         if current:
             current = current[0]
+            body, r = self.get_article_body(article)
+            if not body:
+                raise OperationError(r)
+            else:
+                article['article_body'] = body
+
             self._db.update('news_article', current['id'], article)
         else:
             self._db.create('news_article', article)
@@ -94,7 +101,7 @@ class BaseScraper(Scraper):
         self._data = pd.DataFrame()
         self._query = {}
         self._parameters = {}
-        self._db = XataAPI()
+        self._db = XataAPI(branch=kwargs.pop('branch', 'main'))
         self.load_parameters()
 
 
