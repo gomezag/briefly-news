@@ -6,6 +6,8 @@ import os
 
 from dotenv import load_dotenv
 
+from database.xata_api import XataAPI
+
 load_dotenv()
 
 logger = logging.getLogger('__name__')
@@ -26,33 +28,20 @@ def get_embedding(text, model="text-embedding-ada-002"):
    return embedding['data'][0]['embedding'], time.time() - st_time
 
 
-class EmbeddingGroup(object):
+class Embedder(object):
+   def __init__(self, **kwargs):
+      self._db = XataAPI(branch=kwargs.pop('branch', 'main'))
 
-   def __init__(self):
-      self._data = None
-
-   def read_file(self, file):
-      """
-      Read a file
-      :param file:
-      :return:
-      """
-      df = pd.read_csv(file)
-      df.columns=['date', 'title', 'article_body', '...']  # What else?
+   def embed_nonembedded_articles(self, limit=1):
+      articles = self._db.query('news_article', filter={'$notExists': 'embedding'}, sort={'date':'desc'})
+      df = pd.DataFrame(articles)
+      df = df[['date', 'title', 'subtitle']]
+      df = df.astype(str)
+      results = df.apply(lambda x: pd.Series(get_embedding(x, model='text-embedding-ada-002')), axis=1)
+      results.columns = ['embedding', 'process_time']
+      df = pd.concat([df, results], axis=1)
 
       return df
-
-   def create_embedding(self, chunk):
-      """
-
-      :param chunk: A pandas dataframe with only text in the columns
-      :return:
-      """
-      results = chunk.apply(lambda x: pd.Series(get_embedding(x, model='text-embedding-ada-002')), axis=1)
-      results.columns = ['embedding', 'process_time']  # No of tokens, etc..
-      results.to_csv('output/embedded_data.csv', index=False)
-
-      self._data = results
 
    @property
    def vectors(self):
@@ -60,31 +49,4 @@ class EmbeddingGroup(object):
 
    @property
    def cost(self):
-      # Here we can get fancy with price  calculation
       return self._data['process_time']
-
-
-class Chat:
-   def __init__(self, n):
-      self.n = n
-      self.messages = []
-
-   def chat(self, message):
-      self._add_msg({'role': 'user', 'content': message})
-      response = self._generate_chat()
-      self._add_msg({'role': 'assistant', 'content': response})
-
-      return response
-
-   def _add_msg(self, message_data):
-      self.messages.append(message_data)
-      while len(self.messages) > self.n:
-         self.messages.pop(0)
-
-   def _generate_chat(self):
-
-      return openai.ChatCompletion.create(
-         model='gpt-3.5-turbo',
-         messages=self.messages
-      )
-
