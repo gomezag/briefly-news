@@ -1,0 +1,117 @@
+{
+  "tables": [
+    {
+      "name": "news_publisher",
+      "columns": [
+        {
+          "name": "publisher_name",
+          "type": "string"
+        },
+        {
+          "name": "website",
+          "type": "string"
+        },
+        {
+          "name": "categories",
+          "type": "multiple"
+        },
+        {
+          "name": "endpoints",
+          "type": "multiple"
+        }
+      ]
+    },
+    {
+      "name": "news_article",
+      "columns": [
+        {
+          "name": "publisher",
+          "type": "link",
+          "link": {
+            "table": "news_publisher"
+          }
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "subtitle",
+          "type": "string"
+        },
+        {
+          "name": "date",
+          "type": "datetime"
+        },
+        {
+          "name": "url",
+          "type": "string"
+        },
+        {
+          "name": "authors",
+          "type": "multiple"
+        },
+        {
+          "name": "extras",
+          "type": "multiple"
+        },
+        {
+          "name": "article_id",
+          "type": "string"
+        },
+        {
+          "name": "owner",
+          "type": "string"
+        },
+        {
+          "name": "source",
+          "type": "string"
+        },
+        {
+          "name": "article_body",
+          "type": "text"
+        },
+        {
+          "name": "embedding",
+          "type": "vector",
+          "vector": {
+            "dimension": 1536
+          }
+        },
+        {
+          "name": "process_time",
+          "type": "float"
+        }
+      ]
+    },
+    {
+      "name": "author",
+      "columns": [
+        {
+          "name": "news_publisher_id",
+          "type": "link",
+          "link": {
+            "table": "news_publisher"
+          }
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "news_categories",
+      "columns": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}
