@@ -4,7 +4,7 @@ import pytest
 
 @pytest.fixture
 def xata_api():
-    return XataAPI()
+    return XataAPI(branch='dev')
 
 
 @pytest.fixture
