@@ -17,10 +17,21 @@ class XataAPI(object):
         self.branch = kwargs.pop('branch', 'main')
         self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
 
+    def query(self, table, **params):
+        try:
+            records = self.client.query(table, **params)
+            if not records.get('message', None):
+                return records['records']
+            else:
+                raise FileNotFoundError('Record not found')
+        except Exception as e:
+            raise OperationError(e)
+
     def create(self, table, record_dict):
         created_record = self.client.records().insertRecord(table, record_dict).json()
         if created_record.get('message', None):
             raise OperationError(f"{created_record.get('message')}")
+            
         record_dict.update({"id": created_record['id']})
         return record_dict
 
@@ -30,16 +41,6 @@ class XataAPI(object):
             return record.json()
 
         return None
-
-    def query(self, table, **parms):
-        try:
-            records = self.client.query(table, **parms)
-            if not records.get('message', None):
-                return records['records']
-            else:
-                raise FileNotFoundError('Record not found')
-        except Exception as e:
-            raise OperationError(e)
 
     def update(self, table, record_id, record):
         try:
@@ -53,3 +54,14 @@ class XataAPI(object):
         if r.status_code != 204:
             raise OperationError(r.json()['message'])
         return r
+    
+    def get_or_create(self, table, record_dict):
+        try:
+            record = self.query(table, **record_dict)
+            created = False
+
+        except FileNotFoundError:
+            record = self.create(table, record_dict)
+            created = True
+        
+        return record, created
