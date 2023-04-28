@@ -31,9 +31,10 @@ class XataAPI(object):
         created_record = self.client.records().insertRecord(table, record_dict).json()
         if created_record.get('message', None):
             raise OperationError(f"{created_record.get('message')}")
-            
-        record_dict.update({"id": created_record['id']})
-        return record_dict
+
+        r = record_dict.copy()
+        r.update({"id": created_record['id']})
+        return r
 
     def read(self, table, record_id):
         record = self.client.records().getRecord(table, record_id)
@@ -57,7 +58,10 @@ class XataAPI(object):
     
     def get_or_create(self, table, record_dict):
         try:
-            record = self.query(table, **record_dict)
+            record = self.query(table, filter=record_dict)
+            if len(record) > 1:
+                raise OperationError('There is more than one matching record.')
+            record = record[0]
             created = False
 
         except FileNotFoundError:

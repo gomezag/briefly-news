@@ -70,10 +70,11 @@ class Scraper:
             else:
                 article['article_body'] = body
 
-            self._db.update('news_article', current['id'], article)
+            r = self._db.update('news_article', current['id'], article)
         else:
-            self._db.create('news_article', article)
+            r = self._db.create('news_article', article)
 
+        return r
 
     @property
     def endpoints(self):
