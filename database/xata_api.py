@@ -18,11 +18,18 @@ class XataAPI(object):
         self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
 
     def process_parms(self, params):
+        """
+        Takes an object dictionary and returns a proper Xata query dictionary.
+        Handles a list by setting the query key $includesAll, and $is
+        :param params:
+        :return:
+        """
         if type(params) == list:
             r = dict()
-            r['$includes'] = []
+            query = {}
             for p in params:
-                r['$includes'].append(p)
+                query.update({'$is': p})
+            r['$includesAll'] = query
             return r
         elif type(params) == dict:
             r = dict()
@@ -35,6 +42,7 @@ class XataAPI(object):
     def query(self, table, **params):
         try:
             process_params = self.process_parms(params)
+            print(process_params)
             records = self.client.query(table, **process_params)
             if not records.get('message', None):
                 return records['records']

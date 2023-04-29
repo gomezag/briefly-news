@@ -13,7 +13,7 @@ def created_record_id(created_record):
 @pytest.fixture
 def created_record(xata_api):
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-    created_record = xata_api.create('test_table', {'name': 'test-'+random_string})
+    created_record = xata_api.create('test_table', {'name': 'test-'+random_string, 'authors': ['auth-'+random_string]})
     assert created_record['id'] is not None
 
     try:
@@ -43,3 +43,12 @@ def test_get_or_create(xata_api, created_record):
     finally:
         xata_api.delete(table, dup_record['id'])
 
+
+def test_column_multiple(xata_api, created_record, created_record_id):
+    table = 'test_table'
+    record = created_record.copy()
+    record.pop('id', None)
+    record.pop('xata', None)
+    record['authors'].append('otherone')
+    r = xata_api.query(table, filter=record)
+    assert len(r) == 0
