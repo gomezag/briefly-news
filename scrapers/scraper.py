@@ -61,18 +61,14 @@ class Scraper:
         return current
 
     def save_article(self, article):
-        current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''), 'publisher.publisher_name': self.site})
-        if current:
-            current = current[0]
-            body, r = self.get_article_body(article)
-            if not body:
-                raise OperationError(r)
-            else:
-                article['article_body'] = body
-
-            r = self._db.update('news_article', current['id'], article)
-        else:
-            r = self._db.create('news_article', article)
+        q = article.copy()
+        q.pop('id', None)
+        q.pop('xata', None)
+        q.pop('article_body', None)
+        q.pop('title', None)
+        q.pop('subtitle', None)
+        current, c = self._db.get_or_create('news_article', q)
+        r = self._db.update('news_article', current['id'], article)
 
         return r
 

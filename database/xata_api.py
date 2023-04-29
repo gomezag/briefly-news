@@ -17,9 +17,25 @@ class XataAPI(object):
         self.branch = kwargs.pop('branch', 'main')
         self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
 
+    def process_parms(self, params):
+        if type(params) == list:
+            r = dict()
+            r['$includes'] = []
+            for p in params:
+                r['$includes'].append(p)
+            return r
+        elif type(params) == dict:
+            r = dict()
+            for key, value in params.items():
+                r[key] = self.process_parms(value)
+            return r
+        else:
+            return params
+
     def query(self, table, **params):
         try:
-            records = self.client.query(table, **params)
+            process_params = self.process_parms(params)
+            records = self.client.query(table, **process_params)
             if not records.get('message', None):
                 return records['records']
             else:
@@ -58,7 +74,7 @@ class XataAPI(object):
         if r.status_code != 204:
             raise OperationError(r.json()['message'])
         return r
-    
+
     def get_or_create(self, table, record_dict):
         try:
             record = self.query(table, filter=record_dict)
@@ -67,7 +83,7 @@ class XataAPI(object):
             record = record[0]
             created = False
 
-        except FileNotFoundError:
+        except (FileNotFoundError, IndexError):
             record = self.create(table, record_dict)
             created = True
         

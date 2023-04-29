@@ -48,7 +48,7 @@ def test_article(scraper, site, xata_api):
     assert type(body) == str
     saved_article = scraper.save_article(art)
     try:
-        article, r = xata_api.query('news_article', filter=art)
+        article = xata_api.query('news_article', filter=art)[0]
         assert saved_article['id'] == article['id']
     finally:
         xata_api.delete('news_article', saved_article['id'])
