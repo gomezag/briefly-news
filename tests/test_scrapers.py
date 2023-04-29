@@ -51,4 +51,4 @@ def test_article(scraper, site, xata_api):
         article, r = xata_api.query('news_article', filter=art)
         assert saved_article['id'] == article['id']
     finally:
-        xata_api.delete(saved_article['id'])
+        xata_api.delete('news_article', saved_article['id'])

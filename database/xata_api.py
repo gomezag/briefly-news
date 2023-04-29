@@ -45,9 +45,12 @@ class XataAPI(object):
 
     def update(self, table, record_id, record):
         try:
-            r = self.client.records().updateRecordWithID(table, record_id, record)
+            res = self.client.records().updateRecordWithID(table, record_id, record)
         except Exception as e:
             raise OperationError(e)
+        if res:
+            r = record.copy()
+            r.update(res.json())
         return r
 
     def delete(self, table, record_id):

@@ -33,9 +33,13 @@ def test_get_or_create(xata_api, created_record):
     table = 'test_table'
     same_dict = {key: value for key, value in created_record.items() if key not in ['id', 'xata']}
     record, c = xata_api.get_or_create(table, same_dict)
-    dup_record = xata_api.create(table, same_dict)
     assert c == 0
     assert record['id'] == created_record['id']
-    assert dup_record['id'] != created_record['id']
-    assert dup_record['name'] == created_record['name']
-    pytest.raises(OperationError, xata_api.get_or_create, table, same_dict)
+    try:
+        dup_record = xata_api.create(table, same_dict)
+        assert dup_record['id'] != created_record['id']
+        assert dup_record['name'] == created_record['name']
+        pytest.raises(OperationError, xata_api.get_or_create, table, same_dict)
+    finally:
+        xata_api.delete(table, dup_record['id'])
+
