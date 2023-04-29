@@ -52,3 +52,7 @@ def test_column_multiple(xata_api, created_record, created_record_id):
     record['authors'].append('otherone')
     r = xata_api.query(table, filter=record)
     assert len(r) == 0
+
+    print(xata_api.update(table, created_record_id, record))
+    r = xata_api.query(table, filter=record)
+    assert len(r) == 1

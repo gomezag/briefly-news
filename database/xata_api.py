@@ -42,7 +42,6 @@ class XataAPI(object):
     def query(self, table, **params):
         try:
             process_params = self.process_parms(params)
-            print(process_params)
             records = self.client.query(table, **process_params)
             if not records.get('message', None):
                 return records['records']
