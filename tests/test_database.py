@@ -49,10 +49,15 @@ def test_column_multiple(xata_api, created_record, created_record_id):
     record = created_record.copy()
     record.pop('id', None)
     record.pop('xata', None)
+    # Test that a query with an extra author will not hit.
     record['authors'].append('otherone')
     r = xata_api.query(table, filter=record)
     assert len(r) == 0
-
-    print(xata_api.update(table, created_record_id, record))
+    # Test that a match with all authors will hit.
+    xata_api.update(table, created_record_id, record)
+    r = xata_api.query(table, filter=record)
+    assert len(r) == 1
+    # Test that a query with an author less will hit.
+    record['authors'] = ['otherone']
     r = xata_api.query(table, filter=record)
     assert len(r) == 1

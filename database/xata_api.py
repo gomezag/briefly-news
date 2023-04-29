@@ -28,8 +28,8 @@ class XataAPI(object):
             r = dict()
             query = {}
             for p in params:
-                query.update({'$is': p})
-            r['$includesAll'] = query
+                query.update({'$contains': p})
+            r['$includes'] = query
             return r
         elif type(params) == dict:
             r = dict()
