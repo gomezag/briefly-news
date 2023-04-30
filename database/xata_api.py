@@ -47,6 +47,8 @@ class XataAPI(object):
             r = self.client.records().updateRecordWithID(table, record_id, record)
         except Exception as e:
             raise OperationError(e)
+        if r.status_code == 400:
+            raise OperationError(r.text)
         return r
 
     def delete(self, table, record_id):

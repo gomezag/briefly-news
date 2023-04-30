@@ -9,6 +9,7 @@ def scrape_headlines(scraper, limit=15):
         for article in headlines:
             scraper.save_article(article)
 
+
 try:
     branch = sys.argv[1]
 except IndexError:
