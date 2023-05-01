@@ -46,6 +46,7 @@ def test_article(scraper, site, xata_api):
     art = arts[0]
     body, r = scraper.get_article_body(art)
     assert type(body) == str
+    art['article_body'] = body
     saved_article = scraper.save_article(art)
     try:
         article = xata_api.query('news_article', filter=art)[0]
