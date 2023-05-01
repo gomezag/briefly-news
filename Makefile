@@ -34,3 +34,6 @@ embed:
 	@export PYTHONPATH=$(CURDIR)
 	@echo "Embedding articles"
 	@python -m routines.embed $(BRANCH) $(LIMIT)
+
+scrape-body:
+	@python -m routines.scrape_body $(BRANCH) $(LIMIT)

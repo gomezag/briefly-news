@@ -25,6 +25,8 @@ class XataAPI(object):
         :return:
         """
         if type(params) == list:
+            if not params:
+                return None
             r = dict()
             query = {}
             for p in params:
@@ -34,7 +36,9 @@ class XataAPI(object):
         elif type(params) == dict:
             r = dict()
             for key, value in params.items():
-                r[key] = self.process_parms(value)
+                parm = self.process_parms(value)
+                if parm:
+                    r[key] = parm
             return r
         else:
             return params

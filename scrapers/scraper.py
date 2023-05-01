@@ -52,9 +52,9 @@ class Scraper:
         return new_params
 
     def save_article(self, article):
+        article.pop('xata', None)
+        article.pop('id', None)
         q = article.copy()
-        q.pop('id', None)
-        q.pop('xata', None)
         q.pop('article_body', None)
         q.pop('title', None)
         q.pop('subtitle', None)
