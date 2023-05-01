@@ -41,9 +41,14 @@ def test_headlines(scraper, site):
 
 
 @pytest.mark.parametrize("site", ["abc", ])
-def test_article(scraper, site):
+def test_article(scraper, site, xata_api):
     arts, r = scraper.get_headlines(scraper.categories[16], limit=1)
     art = arts[0]
     body, r = scraper.get_article_body(art)
     assert type(body) == str
-    scraper.save_article(art)
+    saved_article = scraper.save_article(art)
+    try:
+        article = xata_api.query('news_article', filter=art)[0]
+        assert saved_article['id'] == article['id']
+    finally:
+        xata_api.delete('news_article', saved_article['id'])
