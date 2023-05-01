@@ -61,7 +61,8 @@ class Scraper:
         return current
 
     def save_article(self, article):
-        current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''), 'publisher.publisher_name': self.site})
+        current = self._db.query('news_article', filter={'article_id': article.get('article_id', ''),
+                                                         'publisher.publisher_name': self.site})
         if current:
             current = current[0]
             body, r = self.get_article_body(article)
@@ -70,9 +71,9 @@ class Scraper:
             else:
                 article['article_body'] = body
 
-            self._db.update('news_article', current['id'], article)
+            return self._db.update('news_article', current['id'], article)
         else:
-            self._db.create('news_article', article)
+            return self._db.create('news_article', article)
 
 
     @property
