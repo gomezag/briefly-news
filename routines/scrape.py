@@ -6,9 +6,13 @@ from scrapers import Scraper
 def scrape_headlines(scraper, limit=15):
     for category in scraper.categories:
         headlines, r = scraper.get_headlines(category, limit=limit)
-        for article in headlines:
-            article['article_body'] = scraper.get_article_body(article)
-            scraper.save_article(article)
+        try:
+            for article in headlines:
+                body, r = scraper.get_article_body(article)
+                article['article_body'] = body
+                scraper.save_article(article)
+        except Exception as e:
+            print(repr(e))
 
 
 try:
