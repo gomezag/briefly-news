@@ -17,9 +17,32 @@ class XataAPI(object):
         self.branch = kwargs.pop('branch', 'main')
         self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
 
+    def process_parms(self, params):
+        """
+        Takes an object dictionary and returns a proper Xata query dictionary.
+        Handles a list by setting the query key $includesAll, and $is
+        :param params:
+        :return:
+        """
+        if type(params) == list:
+            r = dict()
+            query = {}
+            for p in params:
+                query.update({'$contains': p})
+            r['$includes'] = query
+            return r
+        elif type(params) == dict:
+            r = dict()
+            for key, value in params.items():
+                r[key] = self.process_parms(value)
+            return r
+        else:
+            return params
+
     def query(self, table, **params):
         try:
-            records = self.client.query(table, **params)
+            process_params = self.process_parms(params)
+            records = self.client.query(table, **process_params)
             if not records.get('message', None):
                 return records['records']
             else:
@@ -31,9 +54,10 @@ class XataAPI(object):
         created_record = self.client.records().insertRecord(table, record_dict).json()
         if created_record.get('message', None):
             raise OperationError(f"{created_record.get('message')}")
-            
-        record_dict.update({"id": created_record['id']})
-        return record_dict
+
+        r = record_dict.copy()
+        r.update({"id": created_record['id']})
+        return r
 
     def read(self, table, record_id):
         record = self.client.records().getRecord(table, record_id)
@@ -44,9 +68,12 @@ class XataAPI(object):
 
     def update(self, table, record_id, record):
         try:
-            r = self.client.records().updateRecordWithID(table, record_id, record)
+            res = self.client.records().updateRecordWithID(table, record_id, record)
         except Exception as e:
             raise OperationError(e)
+        if res:
+            r = record.copy()
+            r.update(res.json())
         return r
 
     def delete(self, table, record_id):
@@ -54,13 +81,16 @@ class XataAPI(object):
         if r.status_code != 204:
             raise OperationError(r.json()['message'])
         return r
-    
+
     def get_or_create(self, table, record_dict):
         try:
-            record = self.query(table, **record_dict)
+            record = self.query(table, filter=record_dict)
+            if len(record) > 1:
+                raise OperationError('There is more than one matching record.')
+            record = record[0]
             created = False
 
-        except FileNotFoundError:
+        except (FileNotFoundError, IndexError):
             record = self.create(table, record_dict)
             created = True
         

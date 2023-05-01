@@ -93,7 +93,6 @@ class ABCScraper(ArcPublishingScraper):
             if text.find('"articleBody"'):
                 try:
                     article_data = json.loads(text)
-                    print(article_data)
                     return article_data['articleBody'], article_data
                 except Exception as e:
                     errors.append(e)
