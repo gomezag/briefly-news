@@ -7,6 +7,7 @@ def scrape_headlines(scraper, limit=15):
     for category in scraper.categories:
         headlines, r = scraper.get_headlines(category, limit=limit)
         for article in headlines:
+            article['article_body'] = scraper.get_article_body(article)
             scraper.save_article(article)
 
 
