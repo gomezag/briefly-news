@@ -1,8 +1,10 @@
 # Define variables
 VENV_DIR := venv
 REQUIREMENTS_FILE := requirements.txt
+BRANCH ?= 'main'
+LIMIT ?= 1
 
-.PHONY: venv
+.PHONY: venv scrape embed
 
 # Create virtual environment and install dependencies
 venv:
@@ -26,4 +28,9 @@ test:
 # Scrape data
 scrape:
 	@echo "Scraping to branch $(BRANCH)"
-	@python scrape.py $(BRANCH) $(LIMIT)
+	@python -m routines.scrape $(BRANCH) $(LIMIT)
+
+embed:
+	@export PYTHONPATH=$(CURDIR)
+	@echo "Embedding articles"
+	@python -m routines.embed $(BRANCH) $(LIMIT)

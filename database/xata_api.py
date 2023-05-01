@@ -71,6 +71,10 @@ class XataAPI(object):
             res = self.client.records().updateRecordWithID(table, record_id, record)
         except Exception as e:
             raise OperationError(e)
+
+        if res.status_code == 400:
+            raise OperationError(res.text)
+
         if res:
             r = record.copy()
             r.update(res.json())
