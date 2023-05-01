@@ -42,11 +42,13 @@ class XataAPI(object):
     def query(self, table, **params):
         try:
             process_params = self.process_parms(params)
-            records = self.client.query(table, **process_params)
-            if not records.get('message', None):
-                return records['records']
-            else:
+            records = self.client.search_and_filter().queryTable(table, process_params)
+            if records.status_code == 200:
+                return records.json()['records']
+            elif records.status_code == 404:
                 raise FileNotFoundError('Record not found')
+            else:
+                raise OperationError(records.text)
         except Exception as e:
             raise OperationError(e)
 
