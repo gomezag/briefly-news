@@ -1,6 +1,8 @@
 # Define variables
 VENV_DIR := venv
 REQUIREMENTS_FILE := requirements.txt
+BRANCH ?= 'main'
+LIMIT ?= 1
 
 .PHONY: venv scrape embed
 
@@ -31,4 +33,4 @@ scrape:
 embed:
 	@export PYTHONPATH=$(CURDIR)
 	@echo "Embedding articles"
-	@python -m -vs routines.embed $(BRANCH) $(LIMIT)
+	@python -m routines.embed $(BRANCH) $(LIMIT)
