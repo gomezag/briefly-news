@@ -27,11 +27,13 @@ for i, article in enumerate(articles):
     time.sleep(0.5)
     try:
         article['publisher'] = article['publisher']['id']
+        article.pop('embedding', None)
         scraper = scrapers[article['publisher']]
         body, r = scraper.get_article_body(article)
         article['article_body'] = body
         scraper.save_article(article)
     except Exception as e:
+        print(article)
         time.sleep(2)
         logging.info(f"On {i} got {repr(e)}")
         pass
