@@ -3,6 +3,9 @@ import logging
 
 from scrapers import Scraper
 
+logging.basicConfig(level=logging.INFO)
+logging.root.setLevel(logging.INFO)
+
 
 def scrape_headlines(scraper, limit=15):
     for category in scraper.categories:
