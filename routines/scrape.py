@@ -20,7 +20,7 @@ def scrape_headlines(scraper, limit=15):
                 scraper.save_article(article)
             except Exception as e:
                 logging.info(f"Error in article {article['url']}.")
-                print(repr(e))
+                logging.info(repr(e))
 
 
 try:
