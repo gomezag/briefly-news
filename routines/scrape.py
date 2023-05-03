@@ -7,7 +7,7 @@ from scrapers import Scraper
 def scrape_headlines(scraper, limit=15):
     for category in scraper.categories:
         headlines, r = scraper.get_headlines(category, limit=limit)
-        logging.info(f"Found {len(headlines)} articles for category {category}."
+        logging.info(f"Found {len(headlines)} articles for category {category}.")
         for i, article in enumerate(headlines):
             try:
                 if i % 3 == 0:
