@@ -30,4 +30,3 @@ jobs:
       - name: Scrape sites
         run: |
           make scrape LIMIT=30
-          make scrape-body LIMIT=200
