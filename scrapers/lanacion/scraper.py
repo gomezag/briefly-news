@@ -1,4 +1,7 @@
 import urllib.parse as urlparse
+import requests
+import json
+from bs4 import BeautifulSoup
 
 from scrapers.base_scrapers import ArcPublishingScraper
 
@@ -48,7 +51,41 @@ class LaNacionScraper(ArcPublishingScraper):
                 url=url,
                 authors=authors,
                 publisher=self.parameters['id'],
-
             ))
 
         return articles, r
+
+    def get_article_body(self, article):
+        res = requests.get(article['url'])
+        if res.status_code == 200:
+            soup = BeautifulSoup(res.text, 'html.parser')
+            for script in soup.findAll('script'):
+                article = self._extract_article(script.text, 'Fusion.globalContent=')
+                if article:
+                    body = article.get('description', {}).get('basic', None)
+                    if body:
+                        return body, article
+        else:
+            return None
+
+    @staticmethod
+    def _extract_article(text, keyword):
+        # Find the index of the start of the text you want to extract
+        start = text.find(keyword)
+        if start:
+            if start > 0:
+                start = start + len(keyword)
+                # Find the index of the end of the text you want to extract
+                end = start + 1
+                count = 1
+                while count != 0 and end < len(text):
+                    if text[end] == '{':
+                        count += 1
+                    elif text[end] == '}':
+                        count -= 1
+                    end += 1
+
+                # Extract the text between the start and end indices
+                extracted_text = text[start:end]
+                return json.loads(extracted_text)
+        return None

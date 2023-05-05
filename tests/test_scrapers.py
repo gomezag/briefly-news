@@ -10,6 +10,16 @@ def validate_url(url):
         return False
 
 
+@pytest.fixture
+def sample_cat(site):
+    # Only test one
+    if site == 'abc':
+        catno = 16
+    elif site == 'lanacion':
+        catno = 0
+    return catno
+
+
 @pytest.mark.parametrize("site", ["abc", "lanacion"])
 def test_scraper(scraper, site):
     endpoint = scraper.endpoints.get('headlines', None)
@@ -27,13 +37,8 @@ def test_categories(scraper, site):
 
 
 @pytest.mark.parametrize("site", ["abc", "lanacion"])
-def test_headlines(scraper, site):
-    # Only test one
-    if site == 'abc':
-        catno = 16
-    elif site == 'lanacion':
-        catno = 0
-    data, r = scraper.get_headlines(scraper.categories[catno], limit=1)
+def test_headlines(scraper, site, sample_cat):
+    data, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
     assert len(data) == 1
     story = data[0]
     assert type(story['title']) == str
@@ -44,9 +49,10 @@ def test_headlines(scraper, site):
         assert type(story['source']) == str
 
 
-@pytest.mark.parametrize("site", ["abc", ])
-def test_article(scraper, site, xata_api):
-    arts, r = scraper.get_headlines(scraper.categories[16], limit=1)
+@pytest.mark.parametrize("site", ["abc", "lanacion"])
+def test_article(scraper, site, xata_api, sample_cat):
+
+    arts, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
     art = arts[0]
     body, r = scraper.get_article_body(art)
     assert type(body) == str
