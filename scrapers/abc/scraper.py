@@ -1,4 +1,5 @@
 import json
+from requests import HTTPError
 
 from bs4 import BeautifulSoup
 import urllib.parse as urlparse
@@ -85,15 +86,20 @@ class ABCScraper(ArcPublishingScraper):
         return r
 
     def get_article_body(self, article):
-        r = self.query(article['url'])
-        soup = BeautifulSoup(r.text, 'html.parser')
-        errors = []
-        for script in soup.find_all('script'):
-            text = script.text
-            if text.find('"articleBody"'):
-                try:
-                    article_data = json.loads(text)
-                    return article_data['articleBody'], article_data
-                except Exception as e:
-                    errors.append(e)
-        return None, errors
+        try:
+            r = self.query(article['url'])
+            soup = BeautifulSoup(r.text, 'html.parser')
+            errors = []
+            for script in soup.find_all('script'):
+                text = script.text
+                if text.find('"articleBody"'):
+                    try:
+                        article_data = json.loads(text)
+                        article['article_body'] = article_data['articleBody']
+                        return article, article_data
+                    except Exception as e:
+                        errors.append(e)
+
+            return article, errors
+        except HTTPError as e:
+            return article, e

@@ -1,7 +1,7 @@
 import urllib.parse as urlparse
-import requests
 import json
 from bs4 import BeautifulSoup
+from requests import HTTPError
 
 from scrapers.base_scrapers import ArcPublishingScraper
 
@@ -56,17 +56,28 @@ class LaNacionScraper(ArcPublishingScraper):
         return articles, r
 
     def get_article_body(self, article):
-        res = requests.get(article['url'])
-        if res.status_code == 200:
+        try:
+            res = self.query(article['url'])
             soup = BeautifulSoup(res.text, 'html.parser')
             for script in soup.findAll('script'):
-                article = self._extract_article(script.text, 'Fusion.globalContent=')
-                if article:
-                    body = article.get('description', {}).get('basic', None)
-                    if body:
-                        return body, article
-        else:
-            return None
+                full_article = self._extract_article(script.text, 'Fusion.globalContent=')
+                if full_article:
+                    subtitle = full_article.get('description', {}).get('basic', '')
+                    body_list = full_article.get('content_elements', [])
+                    body = ''
+                    if len(body_list) > 0:
+                        for el in body_list:
+                            if el.get('type', '') == 'text':
+                                text = el.get('content', '')
+                                if text != '':
+                                    body += ' '+str(text)
+                    if body != '':
+                        article['article_body'] = body
+                    if subtitle != '':
+                        article['subtitle'] = subtitle
+                    return article, full_article
+        except HTTPError as e:
+            return article, e
 
     @staticmethod
     def _extract_article(text, keyword):

@@ -54,10 +54,8 @@ def test_article(scraper, site, xata_api, sample_cat):
 
     arts, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
     art = arts[0]
-    body, r = scraper.get_article_body(art)
-    assert type(body) == str
-
-    art['article_body'] = body
+    art, r = scraper.get_article_body(art)
+    assert type(art['article_body']) == str
 
     saved_article = scraper.save_article(art)
     try:
