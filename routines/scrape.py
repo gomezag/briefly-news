@@ -18,7 +18,7 @@ def scrape_headlines(scraper, limit=15):
                 qarticle = scraper._db.query('news_article', filter={'url':article['url']})
                 if len(qarticle)>0:
                     if qarticle[0]['article_body']:
-                        skip += 1
+                        skips += 1
                         continue
                 logging.info(f"Scraping article {i} of {N}")
                 body, r = scraper.get_article_body(article)
@@ -28,7 +28,7 @@ def scrape_headlines(scraper, limit=15):
                 logging.info(f"Error in article {i} of {N}.")
                 logging.info(f"{article}")
                 logging.info(repr(e))
-        logging.info(f"Skipped {skips}/{N} articles.")
+        logging.info(f"Skipped {skips}/{N} articles for category {category}.")
 
 try:
     branch = sys.argv[1]
