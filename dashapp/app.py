@@ -24,7 +24,11 @@ app.layout = html.Div([
         dcc.DatePickerRange(id='date_search', start_date=DEFAULT_START_DATE, end_date=DEFAULT_END_DATE),
     ]),
     html.Button("Buscar", id="search"),
-    html.Div(id='result_table')
+    dcc.Dropdown(options=[{'label':'ABC Color', 'value':'abc'},
+                          {'label':'La Nación Py', 'value':'lanacion'},
+                          {'label':'Todos', 'value':'all'}], id='sel_site', value='all'),
+    html.Div(id='result_table'),
+
 ])
 
 @app.callback(
@@ -32,9 +36,10 @@ app.layout = html.Div([
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
-     State('date_search', 'end_date')]
+     State('date_search', 'end_date'),
+     State('sel_site', 'value')]
 )
-def update_results(btn, text, start_date, end_date):
+def update_results(btn, text, start_date, end_date, site):
     query = {}
     date_q = {}
     if start_date:
@@ -53,6 +58,11 @@ def update_results(btn, text, start_date, end_date):
                          #{'title':{'$contains': text.lower()}},
                          #{'title':{'$contains': text.capitalize()}}
                          #]
+    if site:
+        if site != 'all':
+            query['publisher.publisher_name'] = site
+        else:
+            query.pop('publisher.publisher_name', None)
     chunks = 0
     more = True
     cursor = None
@@ -61,7 +71,8 @@ def update_results(btn, text, start_date, end_date):
     while chunks < 1000 and more:
         cquery = dict(
             filter=query,
-            page={'after': cursor, 'size': 20}
+            page={'after': cursor, 'size': 20},
+            sort={'date': 'desc'}
         )
 
         if cursor:
