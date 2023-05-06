@@ -18,7 +18,9 @@ class LaNacionScraper(ArcPublishingScraper):
         Get the latest headlines
         :param category: a dictionary with an 'id' and 'uri' field
         :param kwargs: extra arguments will be updated in the query dictionary, such as limit
-        :return: a list with the results.
+        :return:
+            - a list with the results.
+            - the full json of the response. Useful for debug.
         """
         endpoint = self.endpoints.get('headlines', None)
         if not endpoint:
@@ -56,6 +58,13 @@ class LaNacionScraper(ArcPublishingScraper):
         return articles, r
 
     def get_article_body(self, article):
+        """
+        Get a full article by parsing the html response
+        :param article: an article dictionary with a valid url.
+        :return:
+            - article: the updated article dictionary
+            - full_article: the full dictionary data found.
+        """
         try:
             res = self.query(article['url'])
             soup = BeautifulSoup(res.text, 'html.parser')

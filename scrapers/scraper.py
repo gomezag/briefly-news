@@ -10,6 +10,9 @@ from database.xata_api import XataAPI
 class Scraper:
     """
     Scraper class to be used by the crawler jobs.
+    It initializes itself as a type according to the site input. When it matches a defined scraper type, it
+    initializes the BaseXScraper, which inherits the methods from the XScraper class.
+
         :param site: Can be only 'abc' for the moment.
     """
 
@@ -23,6 +26,14 @@ class Scraper:
         return inst
 
     def set_parameters(self, parameters):
+        """
+        Sets internal parameters according to the input dictionary.
+        It will take apart the categories input and load the json data for each of the elements in the list.
+        It will read the endpoints as a list of key=jsonDict elements with a path and data elements.
+        Finally, it will update _parameters to the parsed dictionary.
+        :param parameters: a parameter dictionary.
+        :return: None
+        """
         categories = parameters.pop('categories', None)
         endpoints = parameters.pop('endpoints', None)
         if categories:
@@ -42,11 +53,19 @@ class Scraper:
         self._parameters.update(parameters)
 
     def load_parameters(self):
+        """
+        Get parameters from the database and update the instance.
+        :return: the parameter dictionary
+        """
         params = self._db.query('news_publisher', filter={'publisher_name': self.site})[0]
         self.set_parameters(params)
         return params
 
     def save_metadata(self):
+        """
+        Save the current parameters to the database.
+        :return: parameters as they are read from the database after saving
+        """
         params, c = self._db.get_or_create('news_publisher', {'publisher_name': self.site})
 
         new_params = {'publisher_name': str(self.site),
@@ -59,10 +78,16 @@ class Scraper:
         return new_params
 
     def save_article(self, article):
+        """
+        Save an article to the database.
+        It will try to match any entry with a possibly different body or subtitle, to get_or_create a new article
+        in the database with the input dictionary
+        :param article: a valid article dictionary
+        :return: response from the database server.
+        """
         article.pop('xata', None)
         q = article.copy()
         q.pop('article_body', None)
-        q.pop('title', None)
         q.pop('subtitle', None)
         current, c = self._db.get_or_create('news_article', q)
         r = self._db.update('news_article', current['id'], article)
@@ -90,6 +115,10 @@ class Scraper:
 
 
 class BaseScraper(Scraper):
+    """
+    These are common initializations that can/should be added in the BaseXScraper class.
+
+    """
     def __init__(self, *args, **kwargs):
         self._categories = None
         self._data = pd.DataFrame()
