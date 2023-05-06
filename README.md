@@ -11,6 +11,18 @@ You need python >=3.9 with venv installed.
 This will create a virtual environment in the `venv` directory
 and install the necessary dependencies.
 
+## Frontend
+
+Start the local dash frontend with 
+
+    make frontend
+
+This will create a dash-app.pid file in your project root.
+
+Stop the frontend with
+
+    make frontend-stop
+
 Once you have the Xata workspace created with the tables in their place, you can scrape with
 
     make scrape LIMIT=10 BRANCH=dev

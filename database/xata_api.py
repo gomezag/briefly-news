@@ -3,6 +3,8 @@ from database.exceptions import OperationError
 import os
 from dotenv import load_dotenv
 from .utils import get_project_root
+from xata.helpers import to_rfc339
+import datetime
 
 env_file = os.path.join(get_project_root(), '.env')
 
@@ -40,6 +42,8 @@ class XataAPI(object):
                 if parm:
                     r[key] = parm
             return r
+        elif type(params) == datetime.datetime or type(params) == datetime.date:
+            return to_rfc339(params)
         else:
             return params
 
