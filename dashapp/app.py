@@ -1,15 +1,18 @@
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
-import plotly.express as px
 from database.xata_api import XataAPI
 from datetime import datetime
 from llm.utils import get_related_people
 from dash_holoniq_wordcloud import DashWordcloud
+import pandas as pd
 
 # Initialize the app
 app = dash.Dash(__name__)
 xata = XataAPI()
+
+DEFAULT_START_DATE='2023-05-01'
+DEFAULT_END_DATE='2023-05-05'
 
 # Define the layout of the app
 app.layout = html.Div([
@@ -18,7 +21,7 @@ app.layout = html.Div([
         dcc.Input(id='title_search', type='text', placeholder='Search in headlines'),
     ]),
     html.Div(id="date_search_group", children=[
-        dcc.DatePickerRange(id='date_search', start_date='2023-05-01', end_date='2023-05-05'),
+        dcc.DatePickerRange(id='date_search', start_date=DEFAULT_START_DATE, end_date=DEFAULT_END_DATE),
     ]),
     html.Button("Buscar", id="search"),
     html.Div(id='result_table')
@@ -36,20 +39,46 @@ def update_results(btn, text, start_date, end_date):
     date_q = {}
     if start_date:
         st_date = datetime.strptime(start_date, '%Y-%m-%d')
-        date_q['$gt'] = st_date
+    else:
+        st_date = datetime.strptime(DEFAULT_START_DATE, '%Y-%m-%d')
+    date_q['$gt'] = st_date
     if end_date:
         ed_date = datetime.strptime(end_date, '%Y-%m-%d')
-        date_q['$lt'] = ed_date
-    if date_q != {}:
-        query['date'] = date_q
+    else:
+        ed_date = datetime.strptime(DEFAULT_END_DATE, '%Y-%m-%d')
+    date_q['$lt'] = ed_date
+    query['date'] = date_q
     if text:
         query['title'] = {'$contains': text}
                          #{'title':{'$contains': text.lower()}},
                          #{'title':{'$contains': text.capitalize()}}
                          #]
-    articles = xata.query('news_article', filter=query)['records']
-    persons, links = get_related_people(articles)
+    chunks = 0
+    more = True
+    cursor = None
+    persons = pd.DataFrame()
+    links = []
+    while chunks < 1000 and more:
+        cquery = dict(
+            filter=query,
+            page={'after': cursor, 'size': 20}
+        )
 
+        if cursor:
+            cquery.pop('sort', None)
+            cquery.pop('filter', None)
+
+        res = xata.query('news_article', **cquery)
+        articles = res['records']
+        pers, lin = get_related_people(articles)
+        persons = pd.concat([persons, pers], ignore_index=True, sort=False)
+        links.extend(lin)
+        if res.get('meta', {}).get('page', {}).get('more', False):
+            more = True
+            chunks += 1
+            cursor = res["meta"]["page"]["cursor"]  # save next cursor for results
+        else:
+            more = False
 
     rows = []
     for article in links:
@@ -94,7 +123,9 @@ def update_results(btn, text, start_date, end_date):
                               hover=True,
                               )
 
-    return html.Div(children=[wordcloud, table])
+    return html.Div(children=[html.Div(f"Articulos encontrados: {len(links)}"),
+                              wordcloud,
+                              table])
 
 
 # Run the app
