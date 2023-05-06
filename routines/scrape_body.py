@@ -18,7 +18,7 @@ for site in ['abc', ]:
     scraper = Scraper(site, branch=branch)
     scrapers[scraper.parameters['id']] = scraper
 logging.info(f'Scraping up to {limit} articles bodies on branch {branch}.')
-articles = db.query('news_article', filter={'$notExists': 'article_body'}, page={'size': int(limit)})
+articles = db.query('news_article', filter={'$notExists': 'article_body'}, page={'size': int(limit)})['records']
 n = len(articles)
 logging.info(f'Found {n} articles.')
 for i, article in enumerate(articles):

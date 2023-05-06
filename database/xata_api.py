@@ -52,7 +52,7 @@ class XataAPI(object):
             process_params = self.process_parms(params)
             records = self.client.search_and_filter().queryTable(table, process_params)
             if records.status_code == 200:
-                return records.json()['records']
+                return records.json()
             elif records.status_code == 404:
                 raise FileNotFoundError('Record not found')
             else:
@@ -98,7 +98,7 @@ class XataAPI(object):
 
     def get_or_create(self, table, record_dict):
         try:
-            record = self.query(table, filter=record_dict)
+            record = self.query(table, filter=record_dict)['records']
             if len(record) > 1:
                 raise OperationError('There is more than one matching record.')
             record = record[0]

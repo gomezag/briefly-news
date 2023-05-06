@@ -40,8 +40,11 @@ class Embedder(object):
     def embed_nonembedded_articles(self, limit=1, update=True, embed=True):
         logging.info(f"Embedding unembedded articles")
         table = 'news_article'
-        articles = self._db.query(table, filter={'$notExists': 'embedding',
-                                                 '$exists': 'article_body'}, sort={'date': 'desc'}, page={'size': limit})
+        articles = self._db.query(table,
+                                  filter={'$notExists': 'embedding',
+                                          '$exists': 'article_body'},
+                                  sort={'date': 'desc'},
+                                  page={'size': limit})['records']
         logging.info(f"Found {len(articles)} total.")
         print([a['id'] for a in articles])
         if limit < len(articles):
