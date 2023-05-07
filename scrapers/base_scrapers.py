@@ -4,6 +4,13 @@ import urllib.parse as urlparse
 
 
 class ArcPublishingScraper:
+    """
+    Base query for ArcPublishing endpoints.
+    It takes an endpoint and query arguments, which are set in the url as `?key=json.dumps(values)`
+    The query method returns the response as is when the status_code is 200.
+    Otherwise, it raises an HTTPError.
+
+    """
     def set_headers(self):
         pass
 
