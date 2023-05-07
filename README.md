@@ -10,6 +10,15 @@ You need python >=3.9 with venv installed.
 
 This will create a virtual environment in the `venv` directory
 and install the necessary dependencies.
+# Documentation
+
+To generate the documentation,
+
+    make doc
+
+This will generate markdowns with the compiled docstrings in the _build directory. Run this only from `doc` folder!
+
+It will also build a readthedocs style website in the folder `doc/site/index.html`.
 
 ## Frontend
 

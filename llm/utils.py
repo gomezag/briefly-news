@@ -6,6 +6,23 @@ nlp = es_core_news_md.load()
 
 
 def get_related_people(articles, type):
+    """
+    Tags articles by joining their title, subtitle and body and removing HTML tags with BeautifulSoup.
+
+    Then uses spacy lib to tag words and returns a list of words with tag matching `type`.
+
+    Inputs:
+
+        :param articles:
+        :param type:
+
+    Output:
+
+        :return: related, articles
+            - :related: A list of words with matching tags with the # of times they appear in the articles.
+            - :articles: The article list with an extra column including the list of words with matching tags that
+            appear in the article.
+    """
     data = []
     for i, article in enumerate(articles):
         related_persons = []

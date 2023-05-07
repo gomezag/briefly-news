@@ -9,7 +9,7 @@ APP_NAME = dash_app
 APP_FILE = dashapp.app
 PID_FILE = $(APP_NAME).pid
 
-.PHONY: venv scrape embed
+.PHONY: venv scrape embed doc
 
 # Create virtual environment and install dependencies
 venv:
@@ -63,3 +63,9 @@ frontend-stop:
 	@echo "Stopping app..."
 	@kill $$(cat $(PID_FILE)) > /dev/null 2>/dev/null ||:
 	@rm $(PID_FILE)
+
+
+doc:
+	@pip install pydoc-markdown==2.1.3
+	@cd doc/ && pydocmd build
+	@echo "Visit documentation in: file://$(PWD)/doc/_build/site/index.html"
