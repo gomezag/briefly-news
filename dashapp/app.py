@@ -105,15 +105,10 @@ app.layout = html.Div([
      State('wordcloud', 'list')]
 )
 def onclick(clickdata, list):
-    print(clickdata)
-    print(list)
     return [clickdata]
 
 
 def wordcloud_hover(item, dimension, event):
-    print(item)
-    print(dimension)
-    print(event)
     return True
 
 
