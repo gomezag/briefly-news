@@ -17,11 +17,12 @@ Start the local dash frontend with
 
     make frontend
 
-This will create a dash-app.pid file in your project root.
-
 Stop the frontend with
 
     make frontend-stop
+
+
+## Routines
 
 Once you have the Xata workspace created with the tables in their place, you can scrape with
 
