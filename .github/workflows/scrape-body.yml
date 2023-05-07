@@ -1,4 +1,4 @@
-name: Scrape
+name: Scrape Bodies
 
 on:
   workflow_dispatch:

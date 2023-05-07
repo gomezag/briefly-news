@@ -11,22 +11,32 @@ You need python >=3.9 with venv installed.
 This will create a virtual environment in the `venv` directory
 and install the necessary dependencies.
 
+Once you have the Xata workspace created with the tables in their place, you can scrape with
+
+    make scrape LIMIT=10 BRANCH=dev
+    
+and you can embed the nonembedded articles with
+
+    make embed LIMIT=10
+    
+
 ## Project Structure
 * backend
     * database
-        * serverless deployment (Xata)
-        * data models
+        * :heavy_check_mark: XataAPI interface
+        * data models in yml/json
+        * Automatic first-time table creation.
 
     * scraper  
-        * ABC (arc-pub API)
-        * UltimaHora (arc-pub API)
+        * :heavy_check_mark: ABC (arc-pub API) 
+        * :heavy_check_mark: UltimaHora (arc-pub API)
         * LaNacion
         * 5Dias
     
     * LLM
-        * encoding script
-            * encodes every document (a news article)
-        * vector database
+        * Embedder interface
+            * :heavy_check_mark: encodes every document (a news article)
+            * vector database search
         * summary script
             * given a date and a prompt, return a summary of the most relevant news that day
             * store summary in cloud (s3 type storage)
@@ -36,7 +46,7 @@ and install the necessary dependencies.
 
 * devops
     * docker
-    * github actions
+    * ✔️ github actions
 
 
 
