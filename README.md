@@ -13,6 +13,8 @@ and install the necessary dependencies.
 
 ## Frontend
 
+![App screenshot](doc/screenshot.png)
+
 Start the local dash frontend with 
 
     make frontend
