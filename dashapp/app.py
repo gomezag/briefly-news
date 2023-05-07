@@ -17,50 +17,62 @@ DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
 # Define the layout of the app
 app.layout = html.Div([
     html.H1("What's going on man!", className='title is-1'),
-    html.Div(className='container is-center main-container', children=[
-        html.Div(className="field is-grouped", children=[
-            html.Label('Title contains: ', className='control label'),
-            html.Div(className='control', children=[
-                dcc.Input(id='title_search',
-                      type='text',
-                      placeholder='Search in headlines',
-                      className='input')
-            ]),
-        ]),
-        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
-            html.Label("Fechas: ", className='control label'),
-            html.Div(className='control', children=[
-                dcc.DatePickerRange(id='date_search',
-                                    start_date=DEFAULT_START_DATE,
-                                    end_date=DEFAULT_END_DATE),
-            ]),
-        ]),
-        html.Div(className='field is-grouped', children=[
-            html.Div('Sitio: ', className='control label'),
-            html.Div(className='control dropdown', children=[
-                dcc.Dropdown(
-                    options=[{'label': 'ABC Color', 'value': 'abc'},
-                             {'label': 'La Nación Py', 'value': 'lanacion'},
-                             {'label': 'Todos', 'value': 'all'}],
-                    id='sel_site', value='all')
-            ]),
-
-        ]),
-        html.Div(className='field is-grouped', children=[
-                html.Div('Limit: ', className='control label'),
-                html.Div(className='control', children=[
-                    dcc.Input(type='number',
-                              min=1,
-                              id='limit',
-                              className='control input',
-                              value=20)
-                ])
-
-        ]),
-        html.Button("Buscar", id="search", className='button is-info'),
-    ]),
     html.Div(id='encontrados'),
     html.Div(className='columns', children=[
+        html.Div(className='column', children=[
+            html.Div(className='container', children=[
+                html.Div(className="field is-grouped", children=[
+                    html.Label('Title contains: ', className='control label'),
+                    html.Div(className='control', children=[
+                        dcc.Input(id='title_search',
+                              type='text',
+                              placeholder='Search in headlines',
+                              className='input')
+                    ]),
+                ]),
+                html.Div(className="field is-grouped", children=[
+                    html.Label('Body contains: ', className='control label'),
+                    html.Div(className='control', children=[
+                        dcc.Input(id='body_search',
+                              type='text',
+                              placeholder='Search in headlines',
+                              className='input')
+                    ]),
+                ]),
+                html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
+                    html.Label("Fechas: ", className='control label'),
+                    html.Div(className='control', children=[
+                        dcc.DatePickerRange(id='date_search',
+                                            start_date=DEFAULT_START_DATE,
+                                            end_date=DEFAULT_END_DATE),
+                    ]),
+                ]),
+                html.Div(className='field is-grouped', children=[
+                    html.Div('Sitio: ', className='control label'),
+                    html.Div(className='control dropdown', children=[
+                        dcc.Dropdown(
+                            options=[{'label': 'ABC Color', 'value': 'abc'},
+                                     {'label': 'La Nación Py', 'value': 'lanacion'},
+                                     {'label': 'Todos', 'value': 'all'}],
+                            id='sel_site', value='all')
+                    ]),
+
+                ]),
+                html.Div(className='field is-grouped', children=[
+                        html.Div('Limit: ', className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.Input(type='number',
+                                      min=1,
+                                      id='limit',
+                                      className='control input',
+                                      value=20)
+                        ])
+
+                ]),
+                html.Button("Buscar", id="search", className='button is-info'),
+            ]),
+
+        ]),
         html.Div(className='column', children=[
             DashWordcloud(id='wordcloud',
                           list=[],
@@ -114,9 +126,10 @@ def wordcloud_hover(item, dimension, event):
      State('date_search', 'start_date'),
      State('date_search', 'end_date'),
      State('sel_site', 'value'),
-     State('limit', 'value')]
+     State('limit', 'value'),
+     State('body_search', 'value')]
 )
-def update_results(btn, text, start_date, end_date, site, limit):
+def update_results(btn, text, start_date, end_date, site, limit, body):
     query = {}
     date_q = {}
     if start_date:
@@ -135,6 +148,8 @@ def update_results(btn, text, start_date, end_date, site, limit):
                          #{'title':{'$contains': text.lower()}},
                          #{'title':{'$contains': text.capitalize()}}
                          #]
+    if body:
+        query['article_body'] = {'$contains': body}
     if site:
         if site != 'all':
             query['publisher.publisher_name'] = site
@@ -178,14 +193,14 @@ def update_results(btn, text, start_date, end_date, site, limit):
             if key == 'url':
                 cell = html.Td(html.A("Link", href=article[key]))
             elif key == 'names':
-                cell = html.Td(", ".join(article[key][:10]))
+                cell = html.Td(", ".join(article[key][:10]), className='cell')
             else:
                 cell = html.Td(article[key])
             row.append(cell)
         rows.append(html.Tr(children=row))
     children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'POIs']]
     children.extend(rows)
-    table = html.Table(children=children)
+    table = html.Table(children=children, className='table')
     x = persons['count']
     a = 10
     b = 30
