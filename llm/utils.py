@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 nlp = es_core_news_md.load()
 
 
-def get_related_people(articles):
+def get_related_people(articles, type):
     data = []
     for i, article in enumerate(articles):
         related_persons = []
@@ -15,7 +15,7 @@ def get_related_people(articles):
         text = BeautifulSoup(' '.join([title, subtitle, body]), 'html.parser').text
         doc = nlp(text)
         for ent in doc.ents:
-            if ent.label_ == 'PER' and str(ent)!='Lea':
+            if ent.label_ == type and str(ent)!='Lea':
                 related_persons.append(str(ent))
 
         data.append([article['id'], article['url'], related_persons])

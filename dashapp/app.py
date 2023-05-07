@@ -69,6 +69,16 @@ app.layout = html.Div([
                         ])
 
                 ]),
+                html.Div(className='field is-grouped', children=[
+                    html.Div('Key: ', className='control label'),
+                    html.Div(className='control dropdown', children=[
+                        dcc.Dropdown(
+                            options=[{'label': 'Personas', 'value': 'PER'},
+                                     {'label': 'Organizaciones', 'value': 'ORG'},
+                                     {'label': 'Misc.', 'value': 'MISC'}],
+                            id='sel_key', value='PER')
+                    ]),
+                ]),
                 html.Button("Buscar", id="search", className='button is-info'),
             ]),
 
@@ -96,16 +106,31 @@ app.layout = html.Div([
 
     html.Div(id='result_table', children=[]),
 
-    html.Div(id='sink', children=[])
+    dcc.Store(id='articles')
+
 ])
 
+
 @app.callback(
-    [Output('clicktable', 'children')],
+    Output('clicktable', 'children'),
     [Input('wordcloud', 'click'),
-     State('wordcloud', 'list')]
+     State('wordcloud', 'list'),
+     State('articles', 'data')]
 )
-def onclick(clickdata, list):
-    return [clickdata]
+def onclick(clickdata, list, articles):
+    if clickdata:
+        name = clickdata[0]
+        result = []
+        for article in articles:
+            if name in article['names']:
+                result.append(html.Li(children=[
+                    article['date'][:10]+': ',
+                    html.A(article['title'], href=article['url'])]))
+        return html.Div(children=[html.H3(name, className='title is-3'),
+                                  html.Div(children=result)
+               ])
+    else:
+        return ['']
 
 
 def wordcloud_hover(item, dimension, event):
@@ -115,16 +140,18 @@ def wordcloud_hover(item, dimension, event):
 @app.callback(
     [Output("encontrados", "children"),
      Output('wordcloud', 'list'),
-     Output('result_table', 'children')],
+     Output('result_table', 'children'),
+     Output('articles', 'data')],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
      State('date_search', 'end_date'),
-     State('sel_site', 'value'),
+     Input('sel_site', 'value'),
      State('limit', 'value'),
-     State('body_search', 'value')]
+     State('body_search', 'value'),
+     Input('sel_key', 'value'),]
 )
-def update_results(btn, text, start_date, end_date, site, limit, body):
+def update_results(btn, text, start_date, end_date, site, limit, body, sel_key):
     query = {}
     date_q = {}
     if start_date:
@@ -168,7 +195,7 @@ def update_results(btn, text, start_date, end_date, site, limit, body):
 
         res = xata.query('news_article', **cquery)
         articles = res['records']
-        pers, lin = get_related_people(articles)
+        pers, lin = get_related_people(articles, sel_key)
         persons = pd.concat([persons, pers], ignore_index=True, sort=False)
         links.extend(lin)
         if res.get('meta', {}).get('page', {}).get('more', False):
@@ -203,7 +230,7 @@ def update_results(btn, text, start_date, end_date, site, limit, body):
     persons['label'] = persons['names'].astype(str) + ' - ' + persons['count'].astype(str)
     bpersons = persons[['names', 'count_norm', 'label']].to_numpy()
 
-    return f"Articulos encontrados: {len(links)}", bpersons, table
+    return f"Articulos encontrados: {len(links)}", bpersons, table, links
 
 
 # Run the app
