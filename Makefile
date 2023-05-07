@@ -16,6 +16,7 @@ venv:
 	@echo "Creating virtual environment..."
 	@test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
 	@pip install -r $(REQUIREMENTS_FILE)
+	@python -m spacy download es_core_news_md
 	@echo "Virtual environment created and requirements installed."
 
 # Remove virtual environment directory
