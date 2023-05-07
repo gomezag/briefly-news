@@ -7,7 +7,7 @@ This module provides a unified scraping interface for the different sites.
     s = Scraper('abc', branch='dev')
 
     category = s.categories[16]
-    headlines, r = s.get_headlines(category)
+    headlines, r = s.get_headlines(category, limit=10)
     article, r = s.get_article_body(headlines[0])
 
     s.save_article(article)
@@ -50,7 +50,8 @@ The responses of the methods should be standard across all scrapers.
     :return: a list of categories ready to be added to the parameters of the scraper.
 
 #### get_headlines(self, category, *args, **kwargs)
-    Get the latest headlines
+    Get the latest headlines. 
+    An argument limit should be standardized in kwargs to set the article limit to fetch from the headlines
     :param category: a dictionary with an 'id' and 'uri' field
     :param kwargs: extra arguments will be updated in the query dictionary, such as limit
     :return:
