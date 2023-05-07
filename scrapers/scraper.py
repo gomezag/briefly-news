@@ -69,7 +69,7 @@ class Scraper:
 
             :return: the parameter dictionary
         """
-        params = self._db.query('news_publisher', filter={'publisher_name': self.site})[0]
+        params = self._db.query('news_publisher', filter={'publisher_name': self.site})['records'][0]
         self.set_parameters(params)
         return params
 
