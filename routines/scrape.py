@@ -21,8 +21,7 @@ def scrape_headlines(scraper, limit=15):
                         skips += 1
                         continue
                 logging.info(f"Scraping article {i} of {N}")
-                body, r = scraper.get_article_body(article)
-                article['article_body'] = body
+                article, r = scraper.get_article_body(article)
                 scraper.save_article(article)
             except Exception as e:
                 logging.info(f"Error in article {i} of {N}.")
@@ -41,7 +40,7 @@ except IndexError:
     limit = 15
 
 
-for site in ['abc', ]:
+for site in ['abc', 'lanacion']:
     try:
         scraper = Scraper(site, branch=branch)
         scrape_headlines(scraper, limit=limit)

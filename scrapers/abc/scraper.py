@@ -1,4 +1,5 @@
 import json
+from requests import HTTPError
 
 from bs4 import BeautifulSoup
 import urllib.parse as urlparse
@@ -17,7 +18,9 @@ class ABCScraper(ArcPublishingScraper):
         Get the latest headlines
         :param category: a dictionary with an 'id' and 'uri' field
         :param kwargs: extra arguments will be updated in the query dictionary, such as limit
-        :return: a list with the results.
+        :return:
+            - a list with the results.
+            - the full json of the response. Useful for debug.
         """
         endpoint = self.endpoints.get('headlines', None)
         if not endpoint:
@@ -63,7 +66,7 @@ class ABCScraper(ArcPublishingScraper):
         Get the categories as a dataframe with the query parameters to get the headlines.
         :param args:
         :param kwargs:
-        :return:
+        :return: a list of categories ready to be added to the parameters of the scraper.
         """
         endpoint = self.endpoints.get('categories', None)
         if not endpoint:
@@ -85,15 +88,27 @@ class ABCScraper(ArcPublishingScraper):
         return r
 
     def get_article_body(self, article):
-        r = self.query(article['url'])
-        soup = BeautifulSoup(r.text, 'html.parser')
-        errors = []
-        for script in soup.find_all('script'):
-            text = script.text
-            if text.find('"articleBody"'):
-                try:
-                    article_data = json.loads(text)
-                    return article_data['articleBody'], article_data
-                except Exception as e:
-                    errors.append(e)
-        return None, errors
+        """
+        Get a full article by parsing the html response
+        :param article: an article dictionary with a valid url.
+        :return:
+            - article: the updated article dictionary
+            - article_data: the full dictionary data found.
+        """
+        try:
+            r = self.query(article['url'])
+            soup = BeautifulSoup(r.text, 'html.parser')
+            errors = []
+            for script in soup.find_all('script'):
+                text = script.text
+                if text.find('"articleBody"'):
+                    try:
+                        article_data = json.loads(text)
+                        article['article_body'] = article_data['articleBody']
+                        return article, article_data
+                    except Exception as e:
+                        errors.append(e)
+
+            return article, errors
+        except HTTPError as e:
+            return article, e
