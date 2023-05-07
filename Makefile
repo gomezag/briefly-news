@@ -7,6 +7,7 @@ LIMIT ?= 1
 # Define the name of the app and the Python file that contains the Dash app
 APP_NAME = dash_app
 APP_FILE = dashapp.app
+PID_FILE = $(APP_NAME).pid
 
 .PHONY: venv scrape embed
 
@@ -43,18 +44,14 @@ scrape-body:
 	@python -m routines.scrape_body $(BRANCH) $(LIMIT)
 
 frontend:
-	@if [ -f $(APP_NAME).pid ]; then \
-		echo "ERROR: $(APP_NAME) is already running (PID `cat $(APP_NAME).pid`)"; \
-	else \
-	  	python -m $(APP_FILE) & echo $$! > $(APP_NAME).pid; \
-		echo "Started $(APP_NAME) (PID `cat $(APP_NAME).pid`)"; \
+	@if [ -f $(PID_FILE) ]; then \
+  		echo "Stopping app..."; \
+		kill $$(cat $(PID_FILE)); \
 	fi
+	@echo "Starting app..."
+	@nohup python -m $(APP_FILE) > dash.log 2>&1 & echo $$! > $(PID_FILE)
 
 frontend-stop:
-	@if [ -f $(APP_NAME).pid ]; then \
-		kill `cat $(APP_NAME).pid`; \
-		rm $(APP_NAME).pid; \
-		echo "Stopped $(APP_NAME)"; \
-	else \
-		echo "ERROR: $(APP_NAME) is not running"; \
-	fi
+	@echo "Stopping app..."
+	@kill $$(cat $(PID_FILE))
+	@rm $(PID_FILE)

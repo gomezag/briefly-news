@@ -2,7 +2,7 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 from database.xata_api import XataAPI
-from datetime import datetime
+from datetime import datetime, timedelta
 from llm.utils import get_related_people
 from dash_holoniq_wordcloud import DashWordcloud
 import pandas as pd
@@ -11,35 +11,112 @@ import pandas as pd
 app = dash.Dash(__name__)
 xata = XataAPI()
 
-DEFAULT_START_DATE='2023-05-01'
-DEFAULT_END_DATE='2023-05-05'
+DEFAULT_START_DATE = (datetime.now()-timedelta(days=1)).strftime('%Y-%m-%d')
+DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
 
 # Define the layout of the app
 app.layout = html.Div([
-    html.H1('Hello, World!'),
-    html.Div(id="title_search_group", children=[
-        dcc.Input(id='title_search', type='text', placeholder='Search in headlines'),
-    ]),
-    html.Div(id="date_search_group", children=[
-        dcc.DatePickerRange(id='date_search', start_date=DEFAULT_START_DATE, end_date=DEFAULT_END_DATE),
-    ]),
-    html.Button("Buscar", id="search"),
-    dcc.Dropdown(options=[{'label':'ABC Color', 'value':'abc'},
-                          {'label':'La Nación Py', 'value':'lanacion'},
-                          {'label':'Todos', 'value':'all'}], id='sel_site', value='all'),
-    html.Div(id='result_table'),
+    html.H1("What's going on man!", className='title is-1'),
+    html.Div(className='container is-center main-container', children=[
+        html.Div(className="field is-grouped", children=[
+            html.Label('Title contains: ', className='control label'),
+            html.Div(className='control', children=[
+                dcc.Input(id='title_search',
+                      type='text',
+                      placeholder='Search in headlines',
+                      className='input')
+            ]),
+        ]),
+        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
+            html.Label("Fechas: ", className='control label'),
+            html.Div(className='control', children=[
+                dcc.DatePickerRange(id='date_search',
+                                    start_date=DEFAULT_START_DATE,
+                                    end_date=DEFAULT_END_DATE),
+            ]),
+        ]),
+        html.Div(className='field is-grouped', children=[
+            html.Div('Sitio: ', className='control label'),
+            html.Div(className='control dropdown', children=[
+                dcc.Dropdown(
+                    options=[{'label': 'ABC Color', 'value': 'abc'},
+                             {'label': 'La Nación Py', 'value': 'lanacion'},
+                             {'label': 'Todos', 'value': 'all'}],
+                    id='sel_site', value='all')
+            ]),
 
+        ]),
+        html.Div(className='field is-grouped', children=[
+                html.Div('Limit: ', className='control label'),
+                html.Div(className='control', children=[
+                    dcc.Input(type='number',
+                              min=1,
+                              id='limit',
+                              className='control input',
+                              value=20)
+                ])
+
+        ]),
+        html.Button("Buscar", id="search", className='button is-info'),
+    ]),
+    html.Div(id='encontrados'),
+    html.Div(className='columns', children=[
+        html.Div(className='column', children=[
+            DashWordcloud(id='wordcloud',
+                          list=[],
+                          width=700, height=600,
+                          gridSize=16,
+                          color='#f0f0c0',
+                          backgroundColor='#001f00',
+                          shuffle=False,
+                          rotateRatio=0.5,
+                          shrinkToFit=True,
+                          shape='circle',
+                          hover=True
+                          ),
+        ]),
+        html.Div(className='column', id='clicktable',
+                 children=[
+            html.Div('Hello')
+        ]),
+
+    ]),
+
+    html.Div(id='result_table', children=[]),
+
+    html.Div(id='sink', children=[])
 ])
 
 @app.callback(
-    Output("result_table", "children"),
+    [Output('clicktable', 'children')],
+    [Input('wordcloud', 'click'),
+     State('wordcloud', 'list')]
+)
+def onclick(clickdata, list):
+    print(clickdata)
+    print(list)
+    return [clickdata]
+
+
+def wordcloud_hover(item, dimension, event):
+    print(item)
+    print(dimension)
+    print(event)
+    return True
+
+
+@app.callback(
+    [Output("encontrados", "children"),
+     Output('wordcloud', 'list'),
+     Output('result_table', 'children')],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
      State('date_search', 'end_date'),
-     State('sel_site', 'value')]
+     State('sel_site', 'value'),
+     State('limit', 'value')]
 )
-def update_results(btn, text, start_date, end_date, site):
+def update_results(btn, text, start_date, end_date, site, limit):
     query = {}
     date_q = {}
     if start_date:
@@ -68,7 +145,7 @@ def update_results(btn, text, start_date, end_date, site):
     cursor = None
     persons = pd.DataFrame()
     links = []
-    while chunks < 1000 and more:
+    while more:
         cquery = dict(
             filter=query,
             page={'after': cursor, 'size': 20},
@@ -87,6 +164,9 @@ def update_results(btn, text, start_date, end_date, site):
         if res.get('meta', {}).get('page', {}).get('more', False):
             more = True
             chunks += 1
+            if limit:
+                if chunks*20 >= limit:
+                    more = False
             cursor = res["meta"]["page"]["cursor"]  # save next cursor for results
         else:
             more = False
@@ -106,37 +186,14 @@ def update_results(btn, text, start_date, end_date, site):
     children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'POIs']]
     children.extend(rows)
     table = html.Table(children=children)
-    # ptable = html.Table([
-    #     html.Thead(
-    #         html.Tr([html.Th(col) for col in persons.columns])
-    #     ),
-    #     html.Tbody([
-    #         html.Tr([
-    #             html.Td(persons.iloc[i][col]) for col in persons.columns
-    #         ]) for i in range(len(persons[:10]))
-    #     ])
-    # ])
     x = persons['count']
     a = 10
     b = 30
     persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min())
-    persons = persons[['names', 'count_norm', 'count']].to_numpy()
-    wordcloud = DashWordcloud(id='wordcloud',
-                              list=persons,
-                              width=700, height=600,
-                              gridSize=16,
-                              color='#f0f0c0',
-                              backgroundColor='#001f00',
-                              shuffle=False,
-                              rotateRatio=0.5,
-                              shrinkToFit=True,
-                              shape='circle',
-                              hover=True,
-                              )
+    persons['label'] = persons['names'].astype(str) + ' - ' + persons['count'].astype(str)
+    bpersons = persons[['names', 'count_norm', 'label']].to_numpy()
 
-    return html.Div(children=[html.Div(f"Articulos encontrados: {len(links)}"),
-                              wordcloud,
-                              table])
+    return f"Articulos encontrados: {len(links)}", bpersons, table
 
 
 # Run the app
