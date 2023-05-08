@@ -16,8 +16,8 @@ def scrape_headlines(scraper, limit=15):
         for i, article in enumerate(headlines):
             try:
                 qarticle = scraper._db.query('news_article', filter={'url':article['url']})
-                if len(qarticle) > 0:
-                    if qarticle[0]['article_body']:
+                if len(qarticle)>0:
+                    if qarticle[0].get('article_body', None):
                         skips += 1
                         continue
                 logging.info(f"Scraping article {i} of {N}")
