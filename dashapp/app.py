@@ -18,10 +18,9 @@ DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
 # Define the layout of the app
 app.layout = html.Div([
     html.H1("What's going on man!", className='title is-1'),
-    html.Div(id='encontrados'),
     html.Div(className='container', children=[
         html.Div(className='columns', children=[
-#            html.Div(className='column', children=[]),
+            html.Div(className='column', id='resumen', children=[]),
             html.Div(className='column', children=[
                 dcc.Graph(id='article_timeline'),
                 dcc.Interval(id='heartbeat', interval=10*1000, n_intervals=0),
@@ -29,6 +28,7 @@ app.layout = html.Div([
 #            html.Div(className='column', children=[]),
         ]),
     ]),
+    html.H2(id='encontrados', className='title is-2 is-center'),
     html.Div(className='', children=[
         html.Div(className='columns', children=[
             html.Div(className='column', children=[
@@ -131,7 +131,11 @@ app.layout = html.Div([
 
     dcc.Store(id='articles'),
     dcc.Store(id='persons'),
-    dcc.Store(id='tagged_articles')
+    dcc.Store(id='tagged_articles'),
+    dcc.Store(id='sites', data={
+        'abc': xata.query('news_publisher', filter={'publisher_name': 'abc'})['records'][0]['id'],
+        'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id']
+    })
 ])
 
 
@@ -140,7 +144,7 @@ app.layout = html.Div([
     [Input('wordcloud', 'click'),
      State('tagged_articles', 'data')]
 )
-def onclick(clickdata, articles):
+def wordcloud_click(clickdata, articles):
     if clickdata:
         name = clickdata[0]
         result = []
@@ -161,21 +165,24 @@ def wordcloud_hover(item, dimension, event):
 
 
 @app.callback(
-    [Output('article_timeline', 'figure')],
+    [Output('article_timeline', 'figure'), Output('resumen', 'children')],
     [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
 )
 def update_statistics(n, zoom_info):
     graphs = []
+    total_articles = 0
     for site in ['abc', 'lanacion']:
         siteid = xata.query('news_publisher', filter={'publisher_name': site})['records'][0]['id']
         if site == 'abc':
             for source in ['abccolor', 'EFE']:
                 res = xata.client.search_and_filter().aggregateTable('news_article', {
-                    'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}}}, 'filter': {
+                    'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
+                             'total': {'count': '*'}}, 'filter': {
                         'source': source
                     }})
                 if res.status_code == 200:
                     data = pd.DataFrame(res.json()['aggs']['byDay']['values'])
+                    total_articles += res.json()['aggs']['total']
                     data['$key'] = pd.to_datetime(data['$key'])
                     graphs.append(dict(x=data['$key'], y=data['$count'], type='bar', name=source))
                 else:
@@ -215,7 +222,24 @@ def update_statistics(n, zoom_info):
                     zoom_info[f'y{axis_name}.range[0]'],
                     zoom_info[f'y{axis_name}.range[1]']
                 ]
-    return [fig]
+    res = xata.client.search_and_filter().aggregateTable('news_article', {
+        'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
+                 'total': {'count': "*"},
+                 'cost': {'sum': {'column': 'tokens'}}}, 'filter': {
+            '$exists': 'embedding'
+        }})
+    data = res.json()
+    embedded_articles = data["aggs"]["total"]
+    total_cost = data['aggs']['cost']*0.0004/1000
+    results_children = [
+        html.Div(className='box', children=[
+            html.H3(className='title is-3', children=[f'Total de artículos: {total_articles}']),
+            html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
+            html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
+        ])
+    ]
+    return fig, results_children
+
 
 @app.callback(
     [Output("encontrados", "children"),
@@ -229,7 +253,7 @@ def update_statistics(n, zoom_info):
      State('body_search', 'value'),
      State('url_search', 'value'),]
 )
-def update_results(btn, text, start_date, end_date, site, limit, body, url_search):
+def update_search(btn, text, start_date, end_date, site, limit, body, url_search):
     query = {}
     date_q = {}
     if start_date:
@@ -290,7 +314,8 @@ def update_results(btn, text, start_date, end_date, site, limit, body, url_searc
 
 
 @app.callback(
-    [Output('persons', 'data'), Output('tagged_articles', 'data')],
+    [Output('tagged_articles', 'data'),
+     Output('wordcloud', 'list')],
     [Input('tag_btn', 'n_clicks'),
      State('articles', 'data'),
      Input('sel_key', 'value'),
@@ -301,43 +326,46 @@ def tag_articles(btn, articles, sel_key):
         persons = pd.DataFrame()
         pers, links = get_related_people(articles, sel_key)
         persons = pd.concat([persons, pers], ignore_index=True, sort=False)
+        x = persons['count']
+        a = 10
+        b = 30
+        persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min())
+        persons['label'] = persons['names'].astype(str) + ' - ' + persons['count'].astype(str)
+        bpersons = persons[['names', 'count_norm', 'label']].to_numpy()
 
-        return persons.to_numpy(), links
+        return links, bpersons
     else:
-        return None, None
+        return None, []
 
 
 @app.callback(
-    [Output('wordcloud', 'list'),
-     Output('result_table', 'children')],
-    [State('articles', 'data'),
-     Input('persons', 'data')]
+    [Output('result_table', 'children')],
+    [Input('articles', 'data'),
+     State('sites', 'data')]
      )
-def update_table(articles, persons):
-    if not persons:
-        return [], ['']
-    persons = pd.DataFrame(persons, columns=['names', 'count'])
+def update_table(articles, sites):
+
     rows = []
     for article in articles:
         row = []
-        for key in ['date', 'title', 'subtitle', 'url']:
+        for key in ['date', 'title', 'subtitle', 'url', 'authors']:
             if key == 'url':
-                cell = html.Td(html.A("Link", href=article[key]))
+                try:
+                    site = [key for key, value in sites.items() if value == article['publisher']['id']][0]
+                except:
+                    site = article['publisher']
+                cell = html.Td(html.A(str(site), href=article[key]))
+            elif key == 'authors':
+                cell = html.Td(", ".join(article[key]))
             else:
                 cell = html.Td(article[key])
             row.append(cell)
         rows.append(html.Tr(children=row))
-    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'POIs']]
+    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'Autores', 'Sitio']]
     children.extend(rows)
     table = html.Table(children=children, className='table')
-    x = persons['count']
-    a = 10
-    b = 30
-    persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min())
-    persons['label'] = persons['names'].astype(str) + ' - ' + persons['count'].astype(str)
-    bpersons = persons[['names', 'count_norm', 'label']].to_numpy()
 
-    return bpersons, table
+    return [table]
 
 
 # Run the app
