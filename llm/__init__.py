@@ -1,2 +1,2 @@
-from .embeddings import Embedder
+from .embeddings import *
 from .utils import *

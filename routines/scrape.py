@@ -15,7 +15,7 @@ def scrape_headlines(scraper, limit=15):
         skips = 0
         for i, article in enumerate(headlines):
             try:
-                qarticle = scraper._db.query('news_article', filter={'url':article['url']})
+                qarticle = scraper._db.query('news_article', filter={'url':article['url']})['records']
                 if len(qarticle)>0:
                     if qarticle[0].get('article_body', None):
                         skips += 1

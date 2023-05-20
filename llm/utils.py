@@ -32,11 +32,11 @@ def get_related_people(articles, type):
         text = BeautifulSoup(' '.join([title, subtitle, body]), 'html.parser').text
         doc = nlp(text)
         for ent in doc.ents:
-            if ent.label_ == type and str(ent)!='Lea':
-                related_persons.append(str(ent))
-
+            if ent.label_ == type and str(ent) != 'Lea':
+                related_persons.append(str(ent).upper().title())
+        related_persons = list(set(related_persons))
         data.append([article['id'], article['url'], related_persons])
-        article.update({'names': related_persons})
+        article.update({'POIs': related_persons})
     related_table = pd.DataFrame(columns=['id', 'url', 'names'], data=data)
     related = related_table[['names']].explode('names').groupby('names').value_counts().reset_index().sort_values('count',ascending=False)
     return related, articles

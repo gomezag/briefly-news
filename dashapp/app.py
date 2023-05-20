@@ -1,10 +1,8 @@
 import dash
-from datetime import datetime, timedelta
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 from database.xata_api import XataAPI
 from datetime import datetime, timedelta
-from llm.utils import get_related_people
 from dash_holoniq_wordcloud import DashWordcloud
 import pandas as pd
 
@@ -23,90 +21,91 @@ app.layout = html.Div([
             html.Div(className='column', id='resumen', children=[]),
             html.Div(className='column', children=[
                 dcc.Graph(id='article_timeline'),
-                dcc.Interval(id='heartbeat', interval=10*1000, n_intervals=0),
             ]),
 #            html.Div(className='column', children=[]),
         ]),
     ]),
-    html.H2(id='encontrados', className='title is-2 is-center'),
-    html.Div(className='', children=[
+    dcc.Interval(id='heartbeat', interval=10 * 1000, n_intervals=0),
+    dcc.Loading(id='encontrados-loading', className='gifloader', children=[
+        html.H2(id='encontrados', className='title is-2 is-center'),]),
+        html.Div(className='', children=[
         html.Div(className='columns', children=[
             html.Div(className='column', children=[
-                html.Div(className='', children=[
-                    html.Div(className="field is-grouped", children=[
-                        html.Label('Title contains: ', className='control label'),
-                        html.Div(className='control', children=[
-                            dcc.Input(id='title_search',
-                                      type='text',
-                                      placeholder='Search in headlines',
-                                      className='input')
-                        ]),
-                    ]),
-                    html.Div(className="field is-grouped", children=[
-                        html.Label('Body contains: ', className='control label'),
-                        html.Div(className='control', children=[
-                            dcc.Input(id='body_search',
-                                      type='text',
-                                      placeholder='Search in headlines',
-                                      className='input')
-                        ]),
-                    ]),
-                    html.Div(className="field is-grouped", children=[
-                        html.Label('URL contains: ', className='control label'),
-                        html.Div(className='control', children=[
-                            dcc.Input(id='url_search',
-                                      type='text',
-                                      placeholder='Search in headlines',
-                                      className='input')
-                        ]),
-                    ]),
-                    html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
-                        html.Label("Fechas: ", className='control label'),
-                        html.Div(className='control', children=[
-                            dcc.DatePickerRange(id='date_search',
-                                                start_date=DEFAULT_START_DATE,
-                                                end_date=DEFAULT_END_DATE),
-                        ]),
-                    ]),
-                    html.Div(className='field is-grouped', children=[
-                        html.Div('Sitio: ', className='control label'),
-                        html.Div(className='control dropdown', children=[
-                            dcc.Dropdown(
-                                options=[{'label': 'ABC Color', 'value': 'abc'},
-                                         {'label': 'La Nación Py', 'value': 'lanacion'},
-                                         {'label': 'Todos', 'value': 'all'}],
-                                id='sel_site', value='all')
-                        ]),
+                    html.Div(className='', children=[
+                                        html.Div(className="field is-grouped", children=[
+                                            html.Label('Title contains: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(id='title_search',
+                                                          type='text',
+                                                          placeholder='Search in headlines',
+                                                          className='input')
+                                            ]),
+                                        ]),
+                                        html.Div(className="field is-grouped", children=[
+                                            html.Label('Body contains: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(id='body_search',
+                                                          type='text',
+                                                          placeholder='Search in headlines',
+                                                          className='input')
+                                            ]),
+                                        ]),
+                                        html.Div(className="field is-grouped", children=[
+                                            html.Label('URL contains: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(id='url_search',
+                                                          type='text',
+                                                          placeholder='Search in headlines',
+                                                          className='input')
+                                            ]),
+                                        ]),
+                                        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
+                                            html.Label("Fechas: ", className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.DatePickerRange(id='date_search',
+                                                                    start_date=DEFAULT_START_DATE,
+                                                                    end_date=DEFAULT_END_DATE),
+                                            ]),
+                                        ]),
+                                        html.Div(className='field is-grouped', children=[
+                                            html.Div('Sitio: ', className='control label'),
+                                            html.Div(className='control dropdown', children=[
+                                                dcc.Dropdown(
+                                                    options=[{'label': 'ABC Color', 'value': 'abc'},
+                                                             {'label': 'La Nación Py', 'value': 'lanacion'},
+                                                             {'label': 'Todos', 'value': 'all'}],
+                                                    id='sel_site', value='all')
+                                            ]),
 
-                    ]),
-                    html.Div(className='field is-grouped', children=[
-                        html.Div('Limit: ', className='control label'),
-                        html.Div(className='control', children=[
-                            dcc.Input(type='number',
-                                      min=1,
-                                      id='limit',
-                                      className='control input',
-                                      value=20)
-                        ])
+                                        ]),
+                                        html.Div(className='field is-grouped', children=[
+                                            html.Div('Limit: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(type='number',
+                                                          min=1,
+                                                          id='limit',
+                                                          className='control input',
+                                                          value=20)
+                                            ])
 
-                    ]),
-                    html.Div(className='field is-grouped', children=[
-                        html.Div('Key: ', className='control label'),
-                        html.Div(className='control dropdown', children=[
-                            dcc.Dropdown(
-                                options=[{'label': 'Personas', 'value': 'PER'},
-                                         {'label': 'Organizaciones', 'value': 'ORG'},
-                                         {'label': 'Misc.', 'value': 'MISC'}],
-                                id='sel_key', value='PER')
-                        ]),
-                    ]),
-                    html.Button("Buscar", id="search", className='button is-info'),
-                    html.Button("Tagear", id="tag_btn", className='button is-info'),
-                ]),
-
+                                        ]),
+                                        html.Div(className='field is-grouped', children=[
+                                            html.Div('Key: ', className='control label'),
+                                            html.Div(className='control dropdown', children=[
+                                                dcc.Dropdown(
+                                                    options=[{'label': 'Personas', 'value': 'PER'},
+                                                             {'label': 'Organizaciones', 'value': 'ORG'},
+                                                             {'label': 'Misc.', 'value': 'MISC'}],
+                                                    id='sel_key', value='PER')
+                                            ]),
+                                        ]),
+                                        html.Button("Buscar", id="search", className='button is-info'),
+                                        html.Button("Tagear", id="tag_btn", className='button is-info'),
+                                    ])
             ]),
             html.Div(className='column', children=[
-                DashWordcloud(id='wordcloud',
+                dcc.Loading(id='form-loading', className='gifloader', children=[
+                    DashWordcloud(id='wordcloud',
                               list=[],
                               width=700, height=600,
                               gridSize=16,
@@ -117,17 +116,20 @@ app.layout = html.Div([
                               shrinkToFit=True,
                               shape='circle',
                               hover=True
-                              ),
+                              ),]),
             ]),
-            html.Div(className='column', id='clicktable',
+            html.Div(className='column',
                      children=[
-                         html.Div('Hello')
+                         dcc.Loading(id='form-loading', className='gifloader', children=[
+                             html.Div(id='clicktable', children=[])
+                         ]),
                      ]),
 
         ]),
     ]),
-
-    html.Div(id='result_table', children=[]),
+    dcc.Loading(id='table-loading', className='gifloader', children=[
+        html.Div(id='result_table', children=[]),
+    ]),
 
     dcc.Store(id='articles'),
     dcc.Store(id='persons'),
@@ -138,30 +140,6 @@ app.layout = html.Div([
     })
 ])
 
-
-@app.callback(
-    Output('clicktable', 'children'),
-    [Input('wordcloud', 'click'),
-     State('tagged_articles', 'data')]
-)
-def wordcloud_click(clickdata, articles):
-    if clickdata:
-        name = clickdata[0]
-        result = []
-        for article in articles:
-            if name in article['names']:
-                result.append(html.Li(children=[
-                    article['date'][:10]+': ',
-                    html.A(article['title'], href=article['url'])]))
-        return html.Div(children=[html.H3(name, className='title is-3'),
-                                  html.Div(children=result)
-               ])
-    else:
-        return ['']
-
-
-def wordcloud_hover(item, dimension, event):
-    return True
 
 
 @app.callback(
@@ -201,7 +179,7 @@ def update_statistics(n, zoom_info):
     fig = {
             'data': graphs,
             'layout': {
-                'title': 'Estadísticas generales',
+                'title': 'Conteo de Artículos',
                 'barmode': 'stack',
                 'xaxis': {
                     'range':[datetime.now()-timedelta(days=30), datetime.now()],
@@ -243,7 +221,9 @@ def update_statistics(n, zoom_info):
 
 @app.callback(
     [Output("encontrados", "children"),
-     Output('articles', 'data')],
+     Output('articles', 'data'),
+     Output('wordcloud', 'list'),
+     Output('result_table', 'children')],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
@@ -251,9 +231,10 @@ def update_statistics(n, zoom_info):
      Input('sel_site', 'value'),
      State('limit', 'value'),
      State('body_search', 'value'),
-     State('url_search', 'value'),]
+     State('url_search', 'value'),
+     State('sites', 'data')]
 )
-def update_search(btn, text, start_date, end_date, site, limit, body, url_search):
+def update_search(btn, text, start_date, end_date, site, limit, body, url_search, sites):
     query = {}
     date_q = {}
     if start_date:
@@ -309,41 +290,16 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
             cursor = res["meta"]["page"]["cursor"]  # save next cursor for results
         else:
             more = False
+    persons = pd.DataFrame(articles)
+    persons = persons[['POIs']].explode('POIs').groupby('POIs').value_counts().reset_index().sort_values(
+        'count', ascending=False)
+    x = persons['count']
+    a = 10
+    b = 30
+    persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min() + 1)
+    persons['label'] = persons['POIs'].astype(str) + ' - ' + persons['count'].astype(str)
+    bpersons = persons[['POIs', 'count_norm', 'label']].to_numpy()
 
-    return f"Articulos encontrados: {len(articles)}", articles
-
-
-@app.callback(
-    [Output('tagged_articles', 'data'),
-     Output('wordcloud', 'list')],
-    [Input('tag_btn', 'n_clicks'),
-     State('articles', 'data'),
-     Input('sel_key', 'value'),
-     ]
-)
-def tag_articles(btn, articles, sel_key):
-    if articles:
-        persons = pd.DataFrame()
-        pers, links = get_related_people(articles, sel_key)
-        persons = pd.concat([persons, pers], ignore_index=True, sort=False)
-        x = persons['count']
-        a = 10
-        b = 30
-        persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min())
-        persons['label'] = persons['names'].astype(str) + ' - ' + persons['count'].astype(str)
-        bpersons = persons[['names', 'count_norm', 'label']].to_numpy()
-
-        return links, bpersons
-    else:
-        return None, []
-
-
-@app.callback(
-    [Output('result_table', 'children')],
-    [Input('articles', 'data'),
-     State('sites', 'data')]
-     )
-def update_table(articles, sites):
 
     rows = []
     for article in articles:
@@ -364,8 +320,31 @@ def update_table(articles, sites):
     children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'Autores', 'Sitio']]
     children.extend(rows)
     table = html.Table(children=children, className='table')
+    return f"Articulos encontrados: {len(articles)}", articles, bpersons, [table]
 
-    return [table]
+@app.callback(
+    Output('clicktable', 'children'),
+    [Input('wordcloud', 'click'),
+     State('articles', 'data')]
+)
+def wordcloud_click(clickdata, articles):
+    if clickdata:
+        name = clickdata[0]
+        result = []
+        for article in articles:
+            if name in article.get('POIs', []):
+                result.append(html.Li(children=[
+                    article['date'][:10]+': ',
+                    html.A(article['title'], href=article['url'])]))
+        return html.Div(children=[html.H3(name, className='title is-3'),
+                                  html.Div(children=result)
+               ])
+    else:
+        return ['']
+
+
+def wordcloud_hover(item, dimension, event):
+    return True
 
 
 # Run the app
