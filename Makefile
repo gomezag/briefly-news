@@ -63,7 +63,9 @@ frontend:
 			rm $(PID_FILE); \
 		fi; \
 		echo "Starting app..."; \
-		nohup python -m $(APP_FILE) > dash.log 2>&1 & echo $$! > $(PID_FILE)
+		nohup python -m $(APP_FILE) > dash.log 2>&1 & echo $$! > $(PID_FILE); \
+		echo "App started in http://localhost:8050"; \
+		echo "To stop it, run make frontend-stop"
 
 frontend-stop:
 	@echo "Stopping app..."
