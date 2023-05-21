@@ -1,11 +1,11 @@
 
-
-.dash-dropdown{
-    width:80%;
+.dropdown{
+    display: flex;
+    width: 100%;
 }
 
-.dropdown {
-    width: 100%;
+.dash-dropdown{
+    flex-grow: 1;
 }
 
 .dash-spinner {
@@ -53,4 +53,24 @@
   -webkit-animation: spinner-border 0.75s linear infinite;
   animation: spinner-border 0.75s linear infinite;
   margin-top: 2rem;
+}
+
+.form {
+    overflow:auto;
+    height: 600px;
+    align-content: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    row-gap: 5px;
+}
+
+.form .field {
+    flex: 0 1 0px;
+}
+
+.clicktable {
+    overflow-y: auto;
+    height: 600px;
 }

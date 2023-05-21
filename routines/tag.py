@@ -19,11 +19,14 @@ if __name__ == '__main__':
     except IndexError:
         limit = 15
 
-    for site in ['abc',]:
-        try:
-            logging.info(f'Tagging started for site {site} on branch {branch}.')
-            logging.info(f'Limiting to {limit} results.')
-            tagger = Tagger(branch=branch)
-            tagger.tag_untagged_articles(limit=limit, update=True)
-        except Exception as e:
-            print(repr(e))
+    try:
+        logging.info(f'Tagging started on branch {branch}.')
+        logging.info(f'Limiting to {limit} results.')
+        tagger = Tagger(branch=branch)
+        chunks = limit//200
+        while limit > 200:
+            logging.info(f'')
+            tagger.tag_untagged_articles(limit=200, update=True)
+            limit = limit - 200
+    except Exception as e:
+        print(repr(e))

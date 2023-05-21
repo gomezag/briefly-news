@@ -169,7 +169,6 @@ class Tagger(object):
         for article in articles:
             article['publisher'] = article['publisher']['id']
         logging.info(f"Found {len(articles)} total.")
-        print([a['id'] for a in articles])
         if limit < len(articles):
             logging.info(f"Limiting to {limit} results.")
         else:

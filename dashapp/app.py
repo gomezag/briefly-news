@@ -30,8 +30,8 @@ app.layout = html.Div([
         html.H2(id='encontrados', className='title is-2 is-center'),]),
         html.Div(className='', children=[
         html.Div(className='columns', children=[
-            html.Div(className='column', children=[
-                    html.Div(className='', children=[
+            html.Div(className='column', id='formCol', children=[
+                    html.Div(className='form', children=[
                                         html.Div(className="field is-grouped", children=[
                                             html.Label('Title contains: ', className='control label'),
                                             html.Div(className='control', children=[
@@ -89,22 +89,21 @@ app.layout = html.Div([
                                             ])
 
                                         ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Key: ', className='control label'),
-                                            html.Div(className='control dropdown', children=[
-                                                dcc.Dropdown(
-                                                    options=[{'label': 'Personas', 'value': 'PER'},
-                                                             {'label': 'Organizaciones', 'value': 'ORG'},
-                                                             {'label': 'Misc.', 'value': 'MISC'}],
-                                                    id='sel_key', value='PER')
-                                            ]),
-                                        ]),
+                                        # html.Div(className='field is-grouped', children=[
+                                        #     html.Div('Key: ', className='control label'),
+                                        #     html.Div(className='control dropdown', children=[
+                                        #         dcc.Dropdown(
+                                        #             options=[{'label': 'Personas', 'value': 'PER'},
+                                        #                      {'label': 'Organizaciones', 'value': 'ORG'},
+                                        #                      {'label': 'Misc.', 'value': 'MISC'}],
+                                        #             id='sel_key', value='PER')
+                                        #     ]),
+                                        # ]),
                                         html.Button("Buscar", id="search", className='button is-info'),
-                                        html.Button("Tagear", id="tag_btn", className='button is-info'),
                                     ])
             ]),
-            html.Div(className='column', children=[
-                dcc.Loading(id='form-loading', className='gifloader', children=[
+            html.Div(className='column', id='wordcloudCol', children=[
+                dcc.Loading(id='wordcloud-loading', className='gifloader', children=[
                     DashWordcloud(id='wordcloud',
                               list=[],
                               width=700, height=600,
@@ -118,10 +117,10 @@ app.layout = html.Div([
                               hover=True
                               ),]),
             ]),
-            html.Div(className='column',
+            html.Div(className='column', id='infoCol',
                      children=[
-                         dcc.Loading(id='form-loading', className='gifloader', children=[
-                             html.Div(id='clicktable', children=[])
+                         dcc.Loading(id='table-loading', className='gifloader', children=[
+                             html.Div(id='clicktable', className='clicktable', children=[])
                          ]),
                      ]),
 
@@ -140,10 +139,46 @@ app.layout = html.Div([
     })
 ])
 
-
+@app.callback(
+    [Output('resumen', 'children')],
+    [Input('heartbeat', 'n_intervals')]
+)
+def update_summary(n):
+    res = xata.client.search_and_filter().aggregateTable('news_article', {
+        'aggs': {'total': {'count': "*"}
+                 }
+        })
+    data = res.json()
+    total_articles = data["aggs"]["total"]
+    res = xata.client.search_and_filter().aggregateTable('news_article', {
+        'aggs': {'total': {'count': "*"},
+                 'cost': {'sum': {'column': 'tokens'}}
+                 },
+        'filter': {
+            '$exists': 'embedding'
+                  }
+        })
+    data = res.json()
+    embedded_articles = data["aggs"]["total"]
+    total_cost = data['aggs']['cost']*0.0004/1000
+    res = xata.client.search_and_filter().aggregateTable('news_article', {
+        'aggs': {'total': {'count': "*"}}, 'filter': {
+            '$exists': 'POIs'
+        }})
+    data = res.json()
+    tagged_articles = data["aggs"]["total"]
+    results_children = [
+        html.Div(className='box', children=[
+            html.H3(className='title is-3', children=[f'Total de artículos: {total_articles}']),
+            html.H3(className='title is-3', children=[f'Artículos con tags: {tagged_articles} ']),
+            html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
+            html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
+        ])
+    ]
+    return results_children
 
 @app.callback(
-    [Output('article_timeline', 'figure'), Output('resumen', 'children')],
+    [Output('article_timeline', 'figure')],
     [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
 )
 def update_statistics(n, zoom_info):
@@ -167,15 +202,24 @@ def update_statistics(n, zoom_info):
                     print(res.text)
         else:
             res = xata.client.search_and_filter().aggregateTable('news_article', {
-                'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}}}, 'filter':{
+                'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
+                         'total': {'count': '*'}},
+                'filter':{
                     'publisher': siteid
                 }})
-            if res.status_code==200:
+            if res.status_code == 200:
                 data = pd.DataFrame(res.json()['aggs']['byDay']['values'])
+                total_articles += res.json()['aggs']['total']
                 data['$key'] = pd.to_datetime(data['$key'])
                 graphs.append(dict(x=data['$key'], y=data['$count'], type='bar', name=site))
             else:
                 print(res.text)
+
+    for field in ['embedding', 'POIs']:
+        res = xata.client.search_and_filter().aggregateTable('news_article', {
+            'aggs': {'total': {'count': "*"}}, 'filter': {
+                '$exists': field
+            }})
     fig = {
             'data': graphs,
             'layout': {
@@ -200,30 +244,61 @@ def update_statistics(n, zoom_info):
                     zoom_info[f'y{axis_name}.range[0]'],
                     zoom_info[f'y{axis_name}.range[1]']
                 ]
-    res = xata.client.search_and_filter().aggregateTable('news_article', {
-        'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
-                 'total': {'count': "*"},
-                 'cost': {'sum': {'column': 'tokens'}}}, 'filter': {
-            '$exists': 'embedding'
-        }})
-    data = res.json()
-    embedded_articles = data["aggs"]["total"]
-    total_cost = data['aggs']['cost']*0.0004/1000
-    results_children = [
-        html.Div(className='box', children=[
-            html.H3(className='title is-3', children=[f'Total de artículos: {total_articles}']),
-            html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
-            html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
-        ])
-    ]
-    return fig, results_children
+
+    return [fig]
+
+@app.callback(
+    [Output('wordcloud', 'list')],
+    [Input('articles', 'data')]
+)
+def update_wordcloud(articles):
+    persons = pd.DataFrame(articles)
+    if 'POIs' in persons.columns:
+        persons = persons[['POIs']].explode('POIs').groupby('POIs').value_counts().reset_index().sort_values(
+            'count', ascending=False)
+        x = persons['count']
+        a = 10
+        b = 30
+        persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min() + 1)
+        persons['label'] = persons['POIs'].astype(str) + ' - ' + persons['count'].astype(str)
+        bpersons = persons[['POIs', 'count_norm', 'label']].to_numpy()
+    else:
+        bpersons = []
+
+    return [bpersons]
 
 
 @app.callback(
+    [Output('result_table', 'children')],
+    [Input('articles', 'data'),
+     State('sites', 'data')]
+)
+def update_results_table(articles, sites):
+
+    rows = []
+    for article in articles:
+        row = []
+        for key in ['date', 'title', 'subtitle', 'url', 'authors']:
+            if key == 'url':
+                try:
+                    site = [key for key, value in sites.items() if value == article['publisher']['id']][0]
+                except:
+                    site = article['publisher']
+                cell = html.Td(html.A(str(site), href=article[key]))
+            elif key == 'authors':
+                cell = html.Td(", ".join(article[key]))
+            else:
+                cell = html.Td(article[key])
+            row.append(cell)
+        rows.append(html.Tr(children=row))
+    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'Autores', 'Sitio']]
+    children.extend(rows)
+    table = html.Table(children=children, className='table')
+    return [table]
+
+@app.callback(
     [Output("encontrados", "children"),
-     Output('articles', 'data'),
-     Output('wordcloud', 'list'),
-     Output('result_table', 'children')],
+     Output('articles', 'data'),],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
@@ -231,10 +306,9 @@ def update_statistics(n, zoom_info):
      Input('sel_site', 'value'),
      State('limit', 'value'),
      State('body_search', 'value'),
-     State('url_search', 'value'),
-     State('sites', 'data')]
+     State('url_search', 'value')]
 )
-def update_search(btn, text, start_date, end_date, site, limit, body, url_search, sites):
+def update_search(btn, text, start_date, end_date, site, limit, body, url_search):
     query = {}
     date_q = {}
     if start_date:
@@ -290,37 +364,8 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
             cursor = res["meta"]["page"]["cursor"]  # save next cursor for results
         else:
             more = False
-    persons = pd.DataFrame(articles)
-    persons = persons[['POIs']].explode('POIs').groupby('POIs').value_counts().reset_index().sort_values(
-        'count', ascending=False)
-    x = persons['count']
-    a = 10
-    b = 30
-    persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min() + 1)
-    persons['label'] = persons['POIs'].astype(str) + ' - ' + persons['count'].astype(str)
-    bpersons = persons[['POIs', 'count_norm', 'label']].to_numpy()
 
-
-    rows = []
-    for article in articles:
-        row = []
-        for key in ['date', 'title', 'subtitle', 'url', 'authors']:
-            if key == 'url':
-                try:
-                    site = [key for key, value in sites.items() if value == article['publisher']['id']][0]
-                except:
-                    site = article['publisher']
-                cell = html.Td(html.A(str(site), href=article[key]))
-            elif key == 'authors':
-                cell = html.Td(", ".join(article[key]))
-            else:
-                cell = html.Td(article[key])
-            row.append(cell)
-        rows.append(html.Tr(children=row))
-    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'Autores', 'Sitio']]
-    children.extend(rows)
-    table = html.Table(children=children, className='table')
-    return f"Articulos encontrados: {len(articles)}", articles, bpersons, [table]
+    return f"Articulos encontrados: {len(articles)}", articles
 
 @app.callback(
     Output('clicktable', 'children'),
