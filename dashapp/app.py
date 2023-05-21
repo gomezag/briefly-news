@@ -99,7 +99,8 @@ app.layout = html.Div([
                                         #             id='sel_key', value='PER')
                                         #     ]),
                                         # ]),
-                                        html.Button("Buscar", id="search", className='button is-info'),
+                                        dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
+                                                    children=[html.Button("Buscar", id="search", className='button is-info')]),
                                     ])
             ]),
             html.Div(className='column', id='wordcloudCol', children=[
@@ -298,7 +299,8 @@ def update_results_table(articles, sites):
 
 @app.callback(
     [Output("encontrados", "children"),
-     Output('articles', 'data'),],
+     Output('articles', 'data'),
+     Output('search', 'innerHTML')],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
@@ -365,7 +367,7 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
         else:
             more = False
 
-    return f"Articulos encontrados: {len(articles)}", articles
+    return f"Articulos encontrados: {len(articles)}", articles, 'Buscar'
 
 @app.callback(
     Output('clicktable', 'children'),
