@@ -45,6 +45,12 @@ embed:
 		echo "Embedding articles"; \
 		python -m routines.embed $(BRANCH) $(LIMIT);
 
+tag:
+	. ./$(VENV_DIR)/bin/activate; \
+		export PYTHONPATH=$(CURDIR); \
+		echo "Tagging articles"; \
+		python -m routines.tag $(BRANCH) $(LIMIT);
+
 scrape-body:
 	. ./$(VENV_DIR)/bin/activate; \
 		python -m routines.scrape_body $(BRANCH) $(LIMIT);

@@ -300,7 +300,7 @@ def update_results_table(articles, sites):
 @app.callback(
     [Output("encontrados", "children"),
      Output('articles', 'data'),
-     Output('search', 'innerHTML')],
+     Output('search', 'children')],
     [Input("search", "n_clicks"),
      State('title_search', 'value'),
      State('date_search', 'start_date'),
