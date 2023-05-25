@@ -10,32 +10,73 @@ You need python >=3.9 with venv installed.
 
 This will create a virtual environment in the `venv` directory
 and install the necessary dependencies.
+# Documentation
 
-Once you have the Xata workspace created with the tables in their place, you can scrape with
+To generate the documentation,
+
+    make doc
+
+This will generate markdowns with the compiled docstrings in the _build directory. Run this only from `doc` folder!
+
+It will also build a readthedocs style website in the folder `doc/site/index.html`.
+
+## Frontend
+
+![App screenshot](doc/screenshot.png)
+
+Start the local dash frontend with 
+
+    make frontend
+
+Stop the frontend with
+
+    make frontend-stop
+
+
+## Routines
+
+### Scraping
 
     make scrape LIMIT=10 BRANCH=dev
-    
-and you can embed the nonembedded articles with
+
+This will scrape the websites for new articles by going through each category 
+and then each article url to get all the information. 
+
+### Embedding
+
 
     make embed LIMIT=10
-    
+
+This command will embed articles without embeddings using the OpenAI key 
+provided in .env, with the `ada-002` embedder, and uploading the results 
+to the database (watchout for the costs).
+
+### Tagging
+You can tag articles locally using spacy library with the command
+
+    make tag LIMIT=10
+
+This will tag previously untagged articles by tagging the article titles 
+and body using `spacy` library and `es_core_news_md` module and looking for 
+`'PER'` tagged words and add them to the `POIs` field of each article, and 
+finally upload the tags to the database..
 
 ## Project Structure
 * backend
     * database
-        * :heavy_check_mark: XataAPI interface
+        * ✔ XataAPI interface
         * data models in yml/json
         * Automatic first-time table creation.
 
     * scraper  
-        * :heavy_check_mark: ABC (arc-pub API) 
-        * :heavy_check_mark: UltimaHora (arc-pub API)
+        * ✔ ABC (arc-pub API) 
+        * ✔ UltimaHora (arc-pub API)
         * LaNacion
         * 5Dias
     
     * LLM
         * Embedder interface
-            * :heavy_check_mark: encodes every document (a news article)
+            * ✔ encodes every document (a news article)
             * vector database search
         * summary script
             * given a date and a prompt, return a summary of the most relevant news that day

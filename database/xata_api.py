@@ -3,6 +3,8 @@ from database.exceptions import OperationError
 import os
 from dotenv import load_dotenv
 from .utils import get_project_root
+from xata.helpers import to_rfc339
+import datetime
 
 env_file = os.path.join(get_project_root(), '.env')
 
@@ -40,6 +42,8 @@ class XataAPI(object):
                 if parm:
                     r[key] = parm
             return r
+        elif type(params) == datetime.datetime or type(params) == datetime.date:
+            return to_rfc339(params)
         else:
             return params
 
@@ -48,7 +52,7 @@ class XataAPI(object):
             process_params = self.process_parms(params)
             records = self.client.search_and_filter().queryTable(table, process_params)
             if records.status_code == 200:
-                return records.json()['records']
+                return records.json()
             elif records.status_code == 404:
                 raise FileNotFoundError('Record not found')
             else:
@@ -94,7 +98,7 @@ class XataAPI(object):
 
     def get_or_create(self, table, record_dict):
         try:
-            record = self.query(table, filter=record_dict)
+            record = self.query(table, filter=record_dict)['records']
             if len(record) > 1:
                 raise OperationError('There is more than one matching record.')
             record = record[0]

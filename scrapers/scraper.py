@@ -13,7 +13,10 @@ class Scraper:
     It initializes itself as a type according to the site input. When it matches a defined scraper type, it
     initializes the BaseXScraper, which inherits the methods from the XScraper class.
 
+    Inputs:
+
         :param site: Can be only 'abc' for the moment.
+
     """
 
     def __new__(cls, site, *args, **kwargs):
@@ -31,8 +34,14 @@ class Scraper:
         It will take apart the categories input and load the json data for each of the elements in the list.
         It will read the endpoints as a list of key=jsonDict elements with a path and data elements.
         Finally, it will update _parameters to the parsed dictionary.
-        :param parameters: a parameter dictionary.
-        :return: None
+
+        Inputs:
+
+            :param parameters: a parameter dictionary.
+
+        Output:
+
+            :return: None
         """
         categories = parameters.pop('categories', None)
         endpoints = parameters.pop('endpoints', None)
@@ -55,16 +64,23 @@ class Scraper:
     def load_parameters(self):
         """
         Get parameters from the database and update the instance.
-        :return: the parameter dictionary
+
+        Output:
+
+            :return: the parameter dictionary
         """
-        params = self._db.query('news_publisher', filter={'publisher_name': self.site})[0]
+        params = self._db.query('news_publisher', filter={'publisher_name': self.site})['records'][0]
         self.set_parameters(params)
         return params
 
     def save_metadata(self):
         """
         Save the current parameters to the database.
-        :return: parameters as they are read from the database after saving
+
+        Output:
+
+            :return: parameters as they are read from the database after saving
+
         """
         params, c = self._db.get_or_create('news_publisher', {'publisher_name': self.site})
 
@@ -82,13 +98,21 @@ class Scraper:
         Save an article to the database.
         It will try to match any entry with a possibly different body or subtitle, to get_or_create a new article
         in the database with the input dictionary
-        :param article: a valid article dictionary
-        :return: response from the database server.
+
+        Input:
+
+            :param article: a valid article dictionary
+
+        Output:
+
+            :return: response from the database server.
+
         """
         article.pop('xata', None)
         q = article.copy()
         q.pop('article_body', None)
         q.pop('subtitle', None)
+        q.pop('id', None)
         current, c = self._db.get_or_create('news_article', q)
         r = self._db.update('news_article', current['id'], article)
 

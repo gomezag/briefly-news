@@ -12,8 +12,12 @@ This module provides a unified scraping interface for the different sites.
 
     s.save_article(article)
 
-This command will initialize an object that will inherit the query methods 
-for site `abc`. Available sites at the moment are `abc` and `lanacion`.
+This command will initialize an object of class `scrapers.scraper.BaseABCScraper` that will inherit the query methods 
+ from class `scrapers.abc.ABCScraper` and the rest of init parameters from `scrapers.scraper.BaseScraper`.
+
+The common methods for all scrapers are defined under `scrapers.Scraper` class.
+
+Available sites at the moment are `abc` and `lanacion`.
 
 ### Base type scraper
 

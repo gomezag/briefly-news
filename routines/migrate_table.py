@@ -5,7 +5,7 @@ from database.exceptions import OperationError
 def migrate_table(source: XataAPI, dest: XataAPI, table: str):
     if source.branch == dest.branch:
         raise OperationError('Source and destination branches are the same!')
-    records = source.query(table, filter={})
+    records = source.query(table, filter={})['records']
     print(records)
     for record in records:
         record.pop('id')
