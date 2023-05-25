@@ -175,7 +175,6 @@ class Tagger(object):
             limit = len(articles)
         articles = articles[:limit]
         counts, articles = get_related_people(articles, 'PER')
-        logging.info('tagged articles')
         for i, record in enumerate(articles):
             record_id = record.pop('id')
             record.pop('xata', None)
@@ -193,7 +192,7 @@ class Tagger(object):
             record['POIs'] = list(set(record['POIs']))
 
             if i % 5 == 0:
-                logger.info(f'Embedding {i}/{limit}')
+                logger.info(f'Tagged {i}/{limit}')
             if update:
                 self._db.update(table, record_id, record)
             else:

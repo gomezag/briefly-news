@@ -112,6 +112,7 @@ class Scraper:
         q = article.copy()
         q.pop('article_body', None)
         q.pop('subtitle', None)
+        q.pop('id', None)
         current, c = self._db.get_or_create('news_article', q)
         r = self._db.update('news_article', current['id'], article)
 

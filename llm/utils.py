@@ -1,3 +1,5 @@
+import logging
+import time
 import pandas as pd
 import es_core_news_md
 from bs4 import BeautifulSoup
@@ -24,6 +26,8 @@ def get_related_people(articles, type):
             appear in the article.
     """
     data = []
+    st_time = time.time()
+
     for i, article in enumerate(articles):
         related_persons = []
         title = article.get('title', '')
@@ -35,9 +39,11 @@ def get_related_people(articles, type):
             if ent.label_ == type and str(ent) != 'Lea':
                 related_persons.append(str(ent).upper().title())
         related_persons = list(set(related_persons))
-        data.append([article['id'], article['url'], related_persons])
+        data.append([article.get('id', None), article['url'], related_persons])
         article.update({'POIs': related_persons})
     related_table = pd.DataFrame(columns=['id', 'url', 'names'], data=data)
     related = related_table[['names']].explode('names').groupby('names').value_counts().reset_index().sort_values('count',ascending=False)
+    seconds = time.time() - st_time
+    logging.debug(f'Tagged articles in {seconds} seconds.')
     return related, articles
 
