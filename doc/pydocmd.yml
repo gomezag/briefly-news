@@ -42,7 +42,7 @@ preprocessor: pydocmd.preprocessors.simple.Preprocessor
 #
 # Note: if using the simple generator mode, this will default to 'markdown'
 # instead of 'html'.
-headers: markdown
+headers: html
 
 # Additional search path for your Python module. If you use Pydocmd from a
 # subdirectory of your project (eg. docs/), you may want to add the parent

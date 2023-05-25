@@ -1,5 +1,7 @@
 import dash
+from time import sleep
 from dash import dcc, html
+import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
 from database.xata_api import XataAPI
 from datetime import datetime, timedelta
@@ -12,6 +14,7 @@ xata = XataAPI()
 
 DEFAULT_START_DATE = (datetime.now()-timedelta(days=1)).strftime('%Y-%m-%d')
 DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
+loading_style = {'position': 'absolute', 'align-self': 'center'}
 
 # Define the layout of the app
 app.layout = html.Div([
@@ -19,13 +22,18 @@ app.layout = html.Div([
     html.Div(className='container', children=[
         html.Div(className='columns', children=[
             html.Div(className='column', id='resumen', children=[]),
-            html.Div(className='column', children=[
-                dcc.Graph(id='article_timeline'),
-            ]),
+            html.Div(className='column', id='resumen_graph', children=[
+                dcc.Graph(id='article_timeline', style={"display": "none"}),
+                html.Img(id='graph-loading', src="https://cdn.dribbble.com/users/1040528/screenshots/5100277/eye.gif", children=[], style={"display": "inline"})
+            ]
+            ),
 #            html.Div(className='column', children=[]),
         ]),
     ]),
     dcc.Interval(id='heartbeat', interval=10 * 1000, n_intervals=0),
+    # dcc.Loading(id='poinet-loading', className='gifloader', children=[
+    #     dcc.Graph(id='poi-net')
+    # ]),
     dcc.Loading(id='encontrados-loading', className='gifloader', children=[
         html.H2(id='encontrados', className='title is-2 is-center'),]),
         html.Div(className='', children=[
@@ -59,6 +67,15 @@ app.layout = html.Div([
                                                           className='input')
                                             ]),
                                         ]),
+                                        html.Div(className="field is-grouped", children=[
+                                            html.Label('POI: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(id='poi_search',
+                                                          type='text',
+                                                          placeholder='Search for POI',
+                                                          className='input')
+                                            ]),
+                                        ]),
                                         html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
                                             html.Label("Fechas: ", className='control label'),
                                             html.Div(className='control', children=[
@@ -85,7 +102,7 @@ app.layout = html.Div([
                                                           min=1,
                                                           id='limit',
                                                           className='control input',
-                                                          value=20)
+                                                          value=500)
                                             ])
 
                                         ]),
@@ -101,6 +118,8 @@ app.layout = html.Div([
                                         # ]),
                                         dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
                                                     children=[html.Button("Buscar", id="search", className='button is-info')]),
+                                        # dcc.Loading(id='poibtn-loading', className='gifloader', type='default',
+                                        #             children=[html.Button("POIs", id='poi-btn', className='button is-info')]),
                                     ])
             ]),
             html.Div(className='column', id='wordcloudCol', children=[
@@ -128,7 +147,7 @@ app.layout = html.Div([
         ]),
     ]),
     dcc.Loading(id='table-loading', className='gifloader', children=[
-        html.Div(id='result_table', children=[]),
+        html.Div(id='result_table', className='resulttable', children=[]),
     ]),
 
     dcc.Store(id='articles'),
@@ -179,7 +198,7 @@ def update_summary(n):
     return results_children
 
 @app.callback(
-    [Output('article_timeline', 'figure')],
+    [Output('article_timeline', 'figure'), Output('graph-loading', 'style'), Output('article_timeline', 'style')],
     [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
 )
 def update_statistics(n, zoom_info):
@@ -218,16 +237,20 @@ def update_statistics(n, zoom_info):
 
     for field in ['embedding', 'POIs']:
         res = xata.client.search_and_filter().aggregateTable('news_article', {
-            'aggs': {'total': {'count': "*"}}, 'filter': {
-                '$exists': field
-            }})
+            'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}}},
+            'filter': {'$exists': field}
+        })
+        data = pd.DataFrame(res.json()['aggs']['byDay']['values'])
+        data['$key'] = pd.to_datetime(data['$key'])
+        graphs.append(dict(x=data['$key'], y=data['$count'], type='bar', name=field, base=0, opacity=0.5))
+
     fig = {
             'data': graphs,
             'layout': {
                 'title': 'Conteo de Artículos',
                 'barmode': 'stack',
                 'xaxis': {
-                    'range':[datetime.now()-timedelta(days=30), datetime.now()],
+                    'range': [datetime.now()-timedelta(days=30), datetime.now()],
                     'rangeSlider': True
                 },
                 'yaxis': {},
@@ -245,29 +268,10 @@ def update_statistics(n, zoom_info):
                     zoom_info[f'y{axis_name}.range[0]'],
                     zoom_info[f'y{axis_name}.range[1]']
                 ]
-
-    return [fig]
-
-@app.callback(
-    [Output('wordcloud', 'list')],
-    [Input('articles', 'data')]
-)
-def update_wordcloud(articles):
-    persons = pd.DataFrame(articles)
-    if 'POIs' in persons.columns:
-        persons = persons[['POIs']].explode('POIs').groupby('POIs').value_counts().reset_index().sort_values(
-            'count', ascending=False)
-        x = persons['count']
-        a = 10
-        b = 30
-        persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min() + 1)
-        persons['label'] = persons['POIs'].astype(str) + ' - ' + persons['count'].astype(str)
-        bpersons = persons[['POIs', 'count_norm', 'label']].to_numpy()
+    if fig:
+        return fig, {'display': 'none'}, {'display': 'inline'}
     else:
-        bpersons = []
-
-    return [bpersons]
-
+        return None, {'display': 'inline'}, {'display': 'none'}
 
 @app.callback(
     [Output('result_table', 'children')],
@@ -308,9 +312,10 @@ def update_results_table(articles, sites):
      Input('sel_site', 'value'),
      State('limit', 'value'),
      State('body_search', 'value'),
-     State('url_search', 'value')]
+     State('url_search', 'value'),
+     State('poi_search', 'value')]
 )
-def update_search(btn, text, start_date, end_date, site, limit, body, url_search):
+def update_search(btn, text, start_date, end_date, site, limit, body, url_search, poi):
     query = {}
     date_q = {}
     if start_date:
@@ -339,7 +344,8 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
 
     if url_search:
         query['url'] = {'$contains': url_search}
-
+    if poi:
+        query['POIs'] = {'$includes': poi}
     chunks = 0
     more = True
     cursor = None
@@ -369,6 +375,28 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
 
     return f"Articulos encontrados: {len(articles)}", articles, 'Buscar'
 
+
+@app.callback(
+    [Output('wordcloud', 'list')],
+    [Input('articles', 'data')]
+)
+def update_wordcloud(articles):
+    persons = pd.DataFrame(articles)
+    if 'POIs' in persons.columns:
+        persons = persons[['POIs']].explode('POIs').groupby('POIs').value_counts().reset_index().sort_values(
+            'count', ascending=False)
+        x = persons['count']
+        a = 10
+        b = 30
+        persons['count_norm'] = a + (x - x.min()) * (b - a) / (x.max() - x.min() + 1)
+        persons['label'] = persons['POIs'].astype(str) + ' - ' + persons['count'].astype(str)
+        bpersons = persons[['POIs', 'count_norm', 'label']].to_numpy()
+    else:
+        bpersons = []
+
+    return [bpersons]
+
+
 @app.callback(
     Output('clicktable', 'children'),
     [Input('wordcloud', 'click'),
@@ -393,6 +421,104 @@ def wordcloud_click(clickdata, articles):
 def wordcloud_hover(item, dimension, event):
     return True
 
+
+# def count_coincidences(related1, related2):
+#     weight = 0
+#     for key, value in related1.items():
+#         if key in related2:
+#             weight += min(value, related2[key])
+#     return weight
+# @app.callback(
+#     [Output('poi-net', 'figure'), Output('poi-btn', 'children')],
+#     [Input('poi-btn', 'n_clicks')]
+# )
+# def update_poi_graph(n):
+#     articles = []
+#     query = ""
+#     chunks = 0
+#     more = True
+#     cursor=0
+#     while more:
+#         cquery = dict(
+#             filter=query,
+#             page={'after': cursor, 'size': 200},
+#         )
+#
+#         if cursor:
+#             cquery.pop('sort', None)
+#             cquery.pop('filter', None)
+#
+#         res = xata.query('POI', **cquery)
+#         articles.extend(res['records'])
+#         if res.get('meta', {}).get('page', {}).get('more', False):
+#             more = True
+#             chunks += 1
+#             if chunks > 5:
+#                 more = False
+#             cursor = res["meta"]["page"]["cursor"]  # save next cursor for results
+#         else:
+#             more = False
+#     for i, poi in enumerate(articles):
+#         related_pois = {}
+#         for article in poi['articles']:
+#             for cpoi in articles:
+#                 if article in cpoi['articles'] and cpoi['label'] != poi['label']:
+#                     if not related_pois.get(cpoi['label'], False):
+#                         related_pois[cpoi['label']] = 1
+#                     else:
+#                         related_pois[cpoi['label']] += 1
+#         poi['related'] = related_pois
+#     df = pd.DataFrame(articles)
+#     df['connections'] = df['related'].apply(lambda x: count_coincidences(x, df['related']))
+#     # Create nodes
+#     nodes = [go.Scatter(
+#         x=[0],
+#         y=[i],
+#         mode='markers+text',
+#         text=df.loc[i, 'label'],
+#         textposition='middle right',
+#         marker=dict(size=15),
+#     ) for i in range(len(df))]
+#
+#     # Create connections
+#     connections = []
+#     for i in range(len(df)):
+#         for j in range(i + 1, len(df)):
+#             related1 = df.loc[i, 'related']
+#             related2 = df.loc[j, 'related']
+#             weight = count_coincidences(related1, related2)
+#             if weight > 0:
+#                 connections.append(go.Scatter(
+#                     x=[0, 1],
+#                     y=[i, j],
+#                     mode='lines',
+#                     line=dict(width=weight),
+#                     hovertemplate='Weight: ' + str(weight),
+#                 ))
+#
+#     # Create layout
+#     layout = go.Layout(
+#         title='Graph',
+#         showlegend=False,
+#         height=600,
+#         hovermode='closest',
+#         annotations=[
+#             go.layout.Annotation(
+#                 x=0,
+#                 y=i,
+#                 xref='x',
+#                 yref='y',
+#                 text=df.loc[i, 'label'],
+#                 showarrow=False,
+#             ) for i in range(len(df))
+#         ]
+#     )
+#
+#     # Create figure
+#     figure = go.Figure(data=nodes + connections, layout=layout)
+#
+#     return figure, 'POI'
+#
 
 # Run the app
 if __name__ == '__main__':

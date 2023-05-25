@@ -8,6 +8,11 @@
     flex-grow: 1;
 }
 
+.resulttable {
+    height: 500px;
+    overflow-y: auto;
+}
+
 .dash-spinner {
   background-image: url("https://cdn.dribbble.com/users/1040528/screenshots/5100277/eye.gif");
   background-size: contain;
