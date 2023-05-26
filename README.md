@@ -1,5 +1,5 @@
 # whatsgoingon
-LLM powered news briefings
+LLM powered news briefings.
 
 ## Build and test
 You need python >=3.9 with venv installed.
