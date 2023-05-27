@@ -41,16 +41,22 @@ class CincoDiasScraper(ArcPublishingScraper):
     def get_article_body(self, article):
         locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
         url = article.get('url')
-        res = requests.get(url)
+        res = requests.get(url, timeout=10)
         soup = BeautifulSoup(res.text, 'html.parser')
         intro = soup.find_all('div', {'class': 'v-article-intro'})[0]
         body = soup.find_all('div', {'class': 'v-article-body'})[0]
         article_body = " \n ".join([str(p.text) for p in body.find_all('p')])
-        date = " ".join(intro.find_all('h3')[0].text.split())
+        info = intro.find_all('h3')
+        date = " ".join(info[-1].text.split())
         date = datetime.datetime.strptime(date, '%d %B de %Y %H:%M').strftime('%Y-%m-%dT%H:%M:%SZ')
+        authors = []
+        if len(info > 1):
+            authors.extend([" ".join(intro.find_all('h3')[0].text.split()).split('Por ')[1]])
+        authors.extend(article.get('authors', []))
         article.update(dict(
             article_body=article_body,
-            date=date
+            date=date,
+            authors=authors
         ))
 
         return article, soup

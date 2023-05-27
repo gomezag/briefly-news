@@ -90,6 +90,8 @@ app.layout = html.Div([
                                                 dcc.Dropdown(
                                                     options=[{'label': 'ABC Color', 'value': 'abc'},
                                                              {'label': 'La Nación Py', 'value': 'lanacion'},
+                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
+                                                             {'label': '5Dias', 'value': 'cincodias'},
                                                              {'label': 'Todos', 'value': 'all'}],
                                                     id='sel_site', value='all')
                                             ]),
