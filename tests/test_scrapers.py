@@ -17,10 +17,12 @@ def sample_cat(site):
         catno = 16
     elif site == 'lanacion':
         catno = 0
+    else:
+        catno = 0
     return catno
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_scraper(scraper, site):
     endpoint = scraper.endpoints.get('headlines', None)
     if not endpoint:
@@ -29,27 +31,30 @@ def test_scraper(scraper, site):
     assert type(r) == dict
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_categories(scraper, site):
     cats = scraper.categories
     assert type(cats) == list
     assert type(cats[0]) == dict
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_headlines(scraper, site, sample_cat):
     data, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
-    assert len(data) == 1
-    story = data[0]
-    assert type(story['title']) == str
-    assert type(story['authors']) == list
-    assert validate_url(story['url'])
-    if site == 'abc':
-        assert r.get('type') == 'results'
-        assert type(story['source']) == str
+    if site in ["abc", "lanacion"]:
+        assert len(data) == 1
+        story = data[0]
+        assert type(story['title']) == str
+        assert type(story['authors']) == list
+        assert validate_url(story['url'])
+        if site == 'abc':
+            assert r.get('type') == 'results'
+            assert type(story['source']) == str
+    else:
+        assert all([a.get('url', None) for a in data])
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_article(scraper, site, xata_api, sample_cat):
 
     arts, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)

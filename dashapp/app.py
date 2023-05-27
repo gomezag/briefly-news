@@ -90,6 +90,8 @@ app.layout = html.Div([
                                                 dcc.Dropdown(
                                                     options=[{'label': 'ABC Color', 'value': 'abc'},
                                                              {'label': 'La Nación Py', 'value': 'lanacion'},
+                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
+                                                             {'label': '5Dias', 'value': 'cincodias'},
                                                              {'label': 'Todos', 'value': 'all'}],
                                                     id='sel_site', value='all')
                                             ]),
@@ -155,7 +157,9 @@ app.layout = html.Div([
     dcc.Store(id='tagged_articles'),
     dcc.Store(id='sites', data={
         'abc': xata.query('news_publisher', filter={'publisher_name': 'abc'})['records'][0]['id'],
-        'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id']
+        'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id'],
+        'cincodias': xata.query('news_publisher', filter={'publisher_name': 'cincodias'})['records'][0]['id'],
+        'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
     })
 ])
 
@@ -204,7 +208,7 @@ def update_summary(n):
 def update_statistics(n, zoom_info):
     graphs = []
     total_articles = 0
-    for site in ['abc', 'lanacion']:
+    for site in ['abc', 'lanacion', 'ultimahora', 'cincodias']:
         siteid = xata.query('news_publisher', filter={'publisher_name': site})['records'][0]['id']
         if site == 'abc':
             for source in ['abccolor', 'EFE']:
@@ -229,9 +233,10 @@ def update_statistics(n, zoom_info):
                 }})
             if res.status_code == 200:
                 data = pd.DataFrame(res.json()['aggs']['byDay']['values'])
-                total_articles += res.json()['aggs']['total']
-                data['$key'] = pd.to_datetime(data['$key'])
-                graphs.append(dict(x=data['$key'], y=data['$count'], type='bar', name=site))
+                if len(data)>0:
+                    total_articles += res.json()['aggs']['total']
+                    data['$key'] = pd.to_datetime(data['$key'])
+                    graphs.append(dict(x=data['$key'], y=data['$count'], type='bar', name=site))
             else:
                 print(res.text)
 

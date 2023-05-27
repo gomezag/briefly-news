@@ -7,6 +7,11 @@ on:
     branches:
       - 'main'
 
+env:
+  LANG: "es_ES.UTF-8"
+  LANGUAGE: "es_ES:es"
+  LC_ALL: "es_ES.UTF-8"
+
 jobs:
   build:
 
@@ -23,6 +28,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
+          sudo locale-gen es_ES.UTF-8
+          sudo dpkg-reconfigure locales
           python -m pip install --upgrade pip
           make clean
           make venv

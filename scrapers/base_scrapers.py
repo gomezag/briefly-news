@@ -23,8 +23,16 @@ class ArcPublishingScraper:
         for key, value in query.items():
             params.append(f'{key}={json.dumps(value)}')
         url += "&".join(params)
-        r = requests.get(url)
+        r = requests.get(url, timeout=10)
         if r.status_code == 200:
             return r
         else:
             raise requests.HTTPError((r.status_code, r.text))
+
+
+class HTMLScraper:
+    def query(self, endpoint):
+        url = urlparse.urljoin(self._parameters['website'], endpoint)
+        res = requests.get(url, timeout=10)
+
+        return res
