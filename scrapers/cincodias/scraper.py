@@ -39,7 +39,7 @@ class CincoDiasScraper(ArcPublishingScraper):
         return articles, res
 
     def get_article_body(self, article):
-        locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+        locale.setlocale(locale.LC_TIME, 'es_ES')
         url = article.get('url')
         res = requests.get(url)
         soup = BeautifulSoup(res.text, 'html.parser')
