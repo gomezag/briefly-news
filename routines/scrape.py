@@ -13,7 +13,10 @@ def scrape_headlines(scraper, limit=15):
         skips = 0
         for i, article in enumerate(headlines):
             try:
-                qarticle = scraper._db.query('news_article', filter={'url': article['url'], 'title': article['title']})['records']
+                filter = {'url': article['url']}
+                if article.get('title', None):
+                    filter.update({'title': article['title']})
+                qarticle = scraper._db.query('news_article', filter=filter)['records']
                 if len(qarticle) > 0:
                     if qarticle[0].get('article_body', None):
                         # If there is an article with that url and an article body, skip the article.
@@ -42,11 +45,11 @@ if __name__ == '__main__':
         branch = 'main'
 
     try:
-        limit = sys.argv[2]
+        limit = int(sys.argv[2])
     except IndexError:
         limit = 15
 
-    for site in ['abc', 'lanacion']:
+    for site in ['ultimahora']:
         try:
             scraper = Scraper(site, branch=branch)
             scrape_headlines(scraper, limit=limit)
