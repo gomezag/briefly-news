@@ -48,7 +48,6 @@ if __name__ == '__main__':
     branch = sys.argv[1]
     limit = int(sys.argv[2])
     sites = sys.argv[3].split(',')
-    print(sites)
     for site in sites:
         try:
             scraper = Scraper(site, branch=branch)
