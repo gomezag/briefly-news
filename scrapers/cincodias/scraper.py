@@ -20,6 +20,21 @@ class CincoDiasScraper(ArcPublishingScraper):
         soup = BeautifulSoup(res.text, 'html.parser')
         farticles = soup.find_all('article')[:-1]
 
+        # Work around for limitation of 10 articles imposed by site.
+        retry = True
+        while len(farticles) < limit and retry:
+            try:
+                parms.update({'offset': len(farticles)})
+                res = self.query('api/category/timeline', **parms)
+                soup = BeautifulSoup(res.text, 'html.parser')
+                more_articles = soup.find_all('article')[:-1]
+                farticles.extend(more_articles)
+                if not more_articles:
+                    retry = False
+            except Exception:
+                retry = False
+
+        # Get article data from soups
         articles = []
         for article in farticles:
             url = article.find_all('h2')[0].find_all('a')[0].attrs['href']
