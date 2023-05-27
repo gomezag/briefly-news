@@ -7,6 +7,11 @@ on:
     branches:
       - 'main'
 
+env:
+  LANG: "es_ES.UTF-8"
+  LANGUAGE: "es_ES:es"
+  LC_ALL: "es_ES.UTF-8"
+
 jobs:
   build:
 

@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from scrapers.base_scrapers import ArcPublishingScraper
 import requests
-import locale
 import datetime
 
 
@@ -39,7 +38,6 @@ class CincoDiasScraper(ArcPublishingScraper):
         return articles, res
 
     def get_article_body(self, article):
-        locale.setlocale(locale.LC_TIME, 'es_ES')
         url = article.get('url')
         res = requests.get(url)
         soup = BeautifulSoup(res.text, 'html.parser')
