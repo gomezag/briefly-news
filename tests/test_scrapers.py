@@ -22,7 +22,7 @@ def sample_cat(site):
     return catno
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_scraper(scraper, site):
     endpoint = scraper.endpoints.get('headlines', None)
     if not endpoint:
@@ -31,14 +31,14 @@ def test_scraper(scraper, site):
     assert type(r) == dict
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_categories(scraper, site):
     cats = scraper.categories
     assert type(cats) == list
     assert type(cats[0]) == dict
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_headlines(scraper, site, sample_cat):
     data, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
     if site in ["abc", "lanacion"]:
@@ -54,7 +54,7 @@ def test_headlines(scraper, site, sample_cat):
         assert all([a.get('url', None) for a in data])
 
 
-@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora"])
+@pytest.mark.parametrize("site", ["abc", "lanacion", "ultimahora", "cincodias"])
 def test_article(scraper, site, xata_api, sample_cat):
 
     arts, r = scraper.get_headlines(scraper.categories[sample_cat], limit=1)
