@@ -28,3 +28,11 @@ class ArcPublishingScraper:
             return r
         else:
             raise requests.HTTPError((r.status_code, r.text))
+
+
+class HTMLScraper:
+    def query(self, endpoint):
+        url = urlparse.urljoin(self._parameters['website'], endpoint)
+        res = requests.get(url)
+
+        return res

@@ -4,6 +4,7 @@ import logging
 
 from scrapers.abc.scraper import ABCScraper
 from scrapers.lanacion.scraper import LaNacionScraper
+from scrapers.ultimahora.scraper import UltimaHoraScraper
 from database.xata_api import XataAPI
 
 
@@ -24,6 +25,8 @@ class Scraper:
             inst = super().__new__(BaseABCScraper)
         elif site == 'lanacion':
             inst = super().__new__(BaseLaNacionScraper)
+        elif site == 'ultimahora':
+            inst = super().__new__(BaseUltimaHoraScraper)
         else:
             raise ValueError(f"Unknown site: {site}")
         return inst
@@ -157,4 +160,8 @@ class BaseABCScraper(ABCScraper, BaseScraper):
 
 
 class BaseLaNacionScraper(LaNacionScraper, BaseScraper):
+    pass
+
+
+class BaseUltimaHoraScraper(UltimaHoraScraper, BaseScraper):
     pass
