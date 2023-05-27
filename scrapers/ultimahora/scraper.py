@@ -1,6 +1,7 @@
 from scrapers.base_scrapers import HTMLScraper
 from bs4 import BeautifulSoup
 import json
+import datetime
 
 
 class UltimaHoraScraper(HTMLScraper):
@@ -29,7 +30,7 @@ class UltimaHoraScraper(HTMLScraper):
         articles = [{key: value} for key, value in list(set([tuple(a.items())[0] for a in articles]))]
         return articles, res
 
-    def get_article(self, article):
+    def get_article_body(self, article):
         url = article.get('url', None)
         if not url:
             raise ValueError('URL of article can''t be empty.')
@@ -39,11 +40,15 @@ class UltimaHoraScraper(HTMLScraper):
         title = data.get('headline', '')
         subtitle = data.get('description', '')
         body = data.get('articleBody', '')
+        publisher = self.parameters['id']
+        date = data.get('datePublished', datetime.datetime.now())
         authors = [a['name'] for a in data.get('author', [])]
         article.update({
             'title': title,
             'subtitle': subtitle,
             'article_body': body,
-            'authors': authors
+            'authors': authors,
+            'date': date,
+            'publisher': publisher,
         })
         return article, data
