@@ -44,9 +44,9 @@ def get_embedding(text, model="text-embedding-ada-002", embed=True):
     if embed:
         embedding = openai.Embedding.create(input=[out], model=model)
         tokens = embedding['usage']['total_tokens']
-        return embedding['data'][0]['embedding'], time.time() - st_time, tokens
+        return embedding['data'][0]['embedding'], tokens
     else:
-        return None, time.time() - st_time, None
+        return None, None
 
 
 class Embedder(object):
@@ -75,19 +75,70 @@ class Embedder(object):
         """
         logging.info(f"Embedding unembedded articles")
         table = 'news_article'
-        articles = self._db.query(table,
-                                  filter={'$notExists': 'embedding',
-                                          '$exists': 'article_body'},
-                                  sort={'date': 'desc'},
-                                  page={'size': limit})['records']
+        if limit > 200:
+            done = 0
+            articles = []
+            page = 1
+            while done < limit:
+                articles.extend(
+                    self._db.query(table,
+                                   filter={'$notExists': 'embedding',
+                                           '$exists': 'article_body'},
+                                   sort={'date': 'desc'},
+                                   columns=('date',
+                                            'title',
+                                            'subtitle',
+                                            'article_body',
+                                            'authors',
+                                            'source',
+                                            'publisher.publisher_name'),
+                                   page={'size': 200, 'offset': done})['records']
+                )
+                page += 1
+                done += 200
+            articles = articles[:limit]
+        else:
+            articles = self._db.query(table,
+                                      filter={'$notExists': 'embedding',
+                                              '$exists': 'article_body'},
+                                      sort={'date': 'desc'},
+                                      columns=('date',
+                                               'title',
+                                               'subtitle',
+                                               'article_body',
+                                               'authors',
+                                               'source',
+                                               'publisher.publisher_name'),
+                                      page={'size': limit})['records']
         logging.info(f"Found {len(articles)} total.")
-        print([a['id'] for a in articles])
         if limit < len(articles):
             logging.info(f"Limiting to {limit} results.")
         else:
             limit = len(articles)
         articles = articles[:limit]
-        return self.embed_articles(articles, update=update, embed=embed, keys=['date', 'title', 'subtitle', 'article_body'])
+        for article in articles:
+            article.update({
+                'article_body': BeautifulSoup(article['article_body'], 'html.parser').text,
+                'publisher': article['publisher']['publisher_name'],
+                'source': article.get('source', article['publisher']['publisher_name']),
+            })
+        i = 0
+        while articles:
+            if i % 5 == 0:
+                logger.info(f'Embedding {i}/{limit}')
+            article = articles.pop(0)
+            try:
+                self.embed_articles([article], update=update, embed=embed, keys=['date',
+                                                                                   'title',
+                                                                                   'subtitle',
+                                                                                   'article_body',
+                                                                                   'authors',
+                                                                                   'source',
+                                                                                   'publisher'])
+            except Exception as e:
+                print(repr(e))
+                pass
+            i += 1
 
     def embed_articles(self, articles, update=True, embed=True, keys=None):
         """
@@ -115,13 +166,11 @@ class Embedder(object):
             qdf = df
         qdf = qdf.astype(str)
         results = qdf.apply(lambda x: pd.Series(get_embedding(x, model='text-embedding-ada-002', embed=embed)), axis=1)
-        results.columns = ['embedding', 'process_time', 'tokens']
-        rdf = pd.concat([df[['id']], results[['embedding', 'process_time', 'tokens']]], axis=1)
+        results.columns = ['embedding', 'tokens']
+        rdf = pd.concat([df[['id']], results[['embedding', 'tokens']]], axis=1)
         embedded_articles = rdf.to_dict('records')
         for i, record in enumerate(embedded_articles):
             record_id = record.pop('id')
-            if i % 5 == 0:
-                logger.info(f'Embedding {i}/{limit}')
             if update:
                 self._db.update(table, record_id, record)
         return df
