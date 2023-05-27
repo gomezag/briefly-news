@@ -1,6 +1,9 @@
-name: Scrape
+name: Scrape 5Dias
 
 on:
+  schedule:
+    - cron: '10 7 * * *'
+
   workflow_dispatch:
 
 env:
@@ -34,4 +37,4 @@ jobs:
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
       - name: Scrape sites
         run: |
-          make scrape LIMIT=100
+          make scrape LIMIT=100 SITES=cincodias

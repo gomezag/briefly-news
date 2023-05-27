@@ -79,3 +79,7 @@
     overflow-y: auto;
     height: 600px;
 }
+
+#askFormCol .form {
+    height: unset;
+}

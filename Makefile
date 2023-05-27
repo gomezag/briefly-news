@@ -3,6 +3,7 @@ VENV_DIR := venv
 REQUIREMENTS_FILE := requirements-dev.txt
 BRANCH ?= 'main'
 LIMIT ?= 1
+SITES ?= ultimahora,abc,lanacion,cincodias
 
 # Define the name of the app and the Python file that contains the Dash app
 APP_NAME = dash_app
@@ -37,7 +38,7 @@ test:
 scrape:
 	. ./$(VENV_DIR)/bin/activate; \
 		echo "Scraping to branch $(BRANCH)"; \
-		python -m routines.scrape $(BRANCH) $(LIMIT);
+		python -m routines.scrape $(BRANCH) $(LIMIT) $(SITES);
 
 embed:
 	. ./$(VENV_DIR)/bin/activate; \
@@ -50,10 +51,6 @@ tag:
 		export PYTHONPATH=$(CURDIR); \
 		echo "Tagging articles"; \
 		python -m routines.tag $(BRANCH) $(LIMIT);
-
-scrape-body:
-	. ./$(VENV_DIR)/bin/activate; \
-		python -m routines.scrape_body $(BRANCH) $(LIMIT);
 
 frontend:
 	@. ./$(VENV_DIR)/bin/activate; \

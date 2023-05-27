@@ -34,9 +34,69 @@ app.layout = html.Div([
     # dcc.Loading(id='poinet-loading', className='gifloader', children=[
     #     dcc.Graph(id='poi-net')
     # ]),
+        html.Div(className='', children=[
+        html.Div(className='columns', children=[
+            html.Div(className='column', id='askFormCol', children=[
+                    html.Div(className='form', children=[
+                                        html.Div(className="field is-grouped", children=[
+                                            html.Label('Pregunta: ', className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.Input(id='question',
+                                                          type='text',
+                                                          placeholder='Preguntar algo',
+                                                          className='input')
+                                            ]),
+                                        ]),
+                                        html.Div(className='field is-grouped', children=[
+                                            html.Div('Tipo: ', className='control label'),
+                                            html.Div(className='control dropdown', children=[
+                                                dcc.Dropdown(
+                                                    options=[{'label': 'Vector', 'value': 'vector'},
+                                                             {'label': 'Normal', 'value': 'keyword'},],
+                                                    id='ask_type', value='vector')
+                                            ]),
+
+                                        ]),
+                                        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
+                                            html.Label("Fechas: ", className='control label'),
+                                            html.Div(className='control', children=[
+                                                dcc.DatePickerRange(id='ask_date',
+                                                                    start_date=DEFAULT_START_DATE,
+                                                                    end_date=DEFAULT_END_DATE),
+                                            ]),
+                                        ]),
+                                        html.Div(className='field is-grouped', children=[
+                                            html.Div('Sitio: ', className='control label'),
+                                            html.Div(className='control dropdown', children=[
+                                                dcc.Dropdown(
+                                                    options=[{'label': 'ABC Color', 'value': 'abc'},
+                                                             {'label': 'La Nación Py', 'value': 'lanacion'},
+                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
+                                                             {'label': '5Dias', 'value': 'cincodias'},
+                                                             {'label': 'Todos', 'value': 'all'}],
+                                                    id='ask_site', value='all')
+                                            ]),
+
+                                        ]),
+                                        dcc.Loading(id='askbtn-loading', className='gifloader', type='default',
+                                                    children=[html.Button("Preguntar", id="ask", className='button is-info')]),
+                                        # dcc.Loading(id='poibtn-loading', className='gifloader', type='default',
+                                        #             children=[html.Button("POIs", id='poi-btn', className='button is-info')]),
+                                    ])
+            ]),
+            html.Div(className='column', id='askResults',
+                     children=[
+                         dcc.Loading(id='askrelated-loading', className='gifloader', children=[
+                             html.Div(id='answer', children=[]),
+                             html.Div(id='askrelated', children=[])
+                         ]),
+                     ]),
+
+        ]),
+    ]),
     dcc.Loading(id='encontrados-loading', className='gifloader', children=[
         html.H2(id='encontrados', className='title is-2 is-center'),]),
-        html.Div(className='', children=[
+    html.Div(className='', children=[
         html.Div(className='columns', children=[
             html.Div(className='column', id='formCol', children=[
                     html.Div(className='form', children=[
@@ -153,8 +213,6 @@ app.layout = html.Div([
     ]),
 
     dcc.Store(id='articles'),
-    dcc.Store(id='persons'),
-    dcc.Store(id='tagged_articles'),
     dcc.Store(id='sites', data={
         'abc': xata.query('news_publisher', filter={'publisher_name': 'abc'})['records'][0]['id'],
         'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id'],
@@ -162,6 +220,64 @@ app.layout = html.Div([
         'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
     })
 ])
+
+@app.callback(
+    [Output('answer', 'children'),
+     Output('askrelated', 'children'),
+     Output('ask', 'children')],
+    [Input('ask', 'n_clicks'),
+     State('question', 'value'),
+     State('ask_type', 'value'),
+     State('ask_date', 'start_date'),
+     State('ask_date', 'end_date'),
+     State('ask_site', 'value'),
+     State('sites', 'data')]
+)
+def ask_table(n, question, ask_type, start_date, end_date, site, sites):
+    if n:
+        parms = {'question': question, 'searchType': ask_type}
+        query = {}
+        date_q = {}
+        if start_date:
+            st_date = datetime.strptime(start_date, '%Y-%m-%d')
+        else:
+            st_date = datetime.strptime(DEFAULT_START_DATE, '%Y-%m-%d')
+        date_q['$gt'] = st_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        if end_date:
+            ed_date = datetime.strptime(end_date, '%Y-%m-%d')
+        else:
+            ed_date = datetime.strptime(DEFAULT_END_DATE, '%Y-%m-%d')
+        date_q['$lt'] = ed_date.strftime('%Y-%m-%dT%H:%M:%SZ')
+        query['date'] = date_q
+        if site:
+            if site != 'all':
+                query['publisher'] = sites[site]
+            else:
+                query.pop('publisher', None)
+
+        if ask_type == 'vector':
+            parms['vectorSearch'] = {'column': 'embedding', 'contentColumn': 'article_body', 'filter': query}
+        else:
+            parms['search'] = {'filter': query}
+        res = xata.client.search_and_filter().askTable('news_article', parms)
+        if res.status_code == 200:
+            res = res.json()
+            answer = res['answer']
+            id_articles = res['records']
+            articles = [xata.read('news_article', id_art) for id_art in id_articles]
+
+            result = []
+            for article in articles:
+                result.append(html.Li(children=[
+                    article['date'][:10]+': ',
+                    html.A(article['title'], href=article['url']),
+                    html.P(f"({article['id']})")
+                ]))
+
+            return answer, result, 'Preguntar'
+        else:
+            return res.json()['message'], None, 'Preguntar'
+    return None, None, 'Preguntar'
 
 @app.callback(
     [Output('resumen', 'children')],
