@@ -36,7 +36,7 @@ class UltimaHoraScraper(HTMLScraper):
         subtitle = data.get('description', '')
         body = data.get('articleBody', '')
         publisher = self.parameters['id']
-        date = data.get('datePublished', datetime.datetime.now())
+        date = data.get('dateModified', '')
         authors = [a['name'] for a in data.get('author', [])]
         article.update({
             'title': title,
