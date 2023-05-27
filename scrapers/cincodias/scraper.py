@@ -50,7 +50,7 @@ class CincoDiasScraper(ArcPublishingScraper):
         date = " ".join(info[-1].text.split())
         date = datetime.datetime.strptime(date, '%d %B de %Y %H:%M').strftime('%Y-%m-%dT%H:%M:%SZ')
         authors = []
-        if len(info > 1):
+        if len(info) > 1:
             authors.extend([" ".join(intro.find_all('h3')[0].text.split()).split('Por ')[1]])
         authors.extend(article.get('authors', []))
         article.update(dict(
