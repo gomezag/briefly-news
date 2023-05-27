@@ -49,7 +49,7 @@ if __name__ == '__main__':
     except IndexError:
         limit = 15
 
-    for site in ['ultimahora']:
+    for site in ['abc', 'lanacion', 'ultimahora']:
         try:
             scraper = Scraper(site, branch=branch)
             scrape_headlines(scraper, limit=limit)
