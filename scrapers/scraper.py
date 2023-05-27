@@ -5,6 +5,7 @@ import logging
 from scrapers.abc.scraper import ABCScraper
 from scrapers.lanacion.scraper import LaNacionScraper
 from scrapers.ultimahora.scraper import UltimaHoraScraper
+from scrapers.cincodias.scraper import CincoDiasScraper
 from database.xata_api import XataAPI
 
 
@@ -27,6 +28,8 @@ class Scraper:
             inst = super().__new__(BaseLaNacionScraper)
         elif site == 'ultimahora':
             inst = super().__new__(BaseUltimaHoraScraper)
+        elif site == 'cincodias':
+            inst = super().__new__(BaseCincoDiasScraper)
         else:
             raise ValueError(f"Unknown site: {site}")
         return inst
@@ -156,12 +159,28 @@ class BaseScraper(Scraper):
 
 
 class BaseABCScraper(ABCScraper, BaseScraper):
-    pass
+    def __init__(self, *args, **kwargs):
+        self.site = 'abc'
+        self.site_id = 'abc'
+        super().__init__(*args, **kwargs)
 
 
 class BaseLaNacionScraper(LaNacionScraper, BaseScraper):
-    pass
+    def __init__(self, *args, **kwargs):
+        self.site_id = 'lanacion'
+        self.site = 'lanacion'
+        super().__init__(*args, **kwargs)
 
 
 class BaseUltimaHoraScraper(UltimaHoraScraper, BaseScraper):
-    pass
+    def __init__(self, *args, **kwargs):
+        self.site_id = 'ultimahora'
+        self.site = 'ultimahora'
+        super().__init__(*args, **kwargs)
+
+
+class BaseCincoDiasScraper(CincoDiasScraper, BaseScraper):
+    def __init__(self, *args, **kwargs):
+        self.site_id = 'cincodias'
+        self.site = 'cincodias'
+        super().__init__(*args, **kwargs)

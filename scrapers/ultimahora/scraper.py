@@ -6,11 +6,6 @@ import datetime
 
 class UltimaHoraScraper(HTMLScraper):
 
-    def __init__(self, *args, **kwargs):
-        self.site_id = 'ultimahora'
-        self.site = 'ultimahora'
-        super().__init__(*args, **kwargs)
-
     def get_headlines(self, category, *args, **kwargs):
         limit = kwargs.get('limit', 1)
         endpoint = category.get('url', '')
