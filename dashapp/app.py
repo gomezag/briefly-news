@@ -10,6 +10,7 @@ import pandas as pd
 
 # Initialize the app
 app = dash.Dash(__name__)
+
 xata = XataAPI()
 
 DEFAULT_START_DATE = (datetime.now()-timedelta(days=1)).strftime('%Y-%m-%d')
@@ -34,177 +35,162 @@ app.layout = html.Div([
     # dcc.Loading(id='poinet-loading', className='gifloader', children=[
     #     dcc.Graph(id='poi-net')
     # ]),
-        html.Div(className='', children=[
-        html.Div(className='columns', children=[
-            html.Div(className='column', id='askFormCol', children=[
-                    html.Div(className='form', children=[
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('Pregunta: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='question',
-                                                          type='text',
-                                                          placeholder='Preguntar algo',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Tipo: ', className='control label'),
-                                            html.Div(className='control dropdown', children=[
-                                                dcc.Dropdown(
-                                                    options=[{'label': 'Vector', 'value': 'vector'},
-                                                             {'label': 'Normal', 'value': 'keyword'},],
-                                                    id='ask_type', value='vector')
-                                            ]),
 
-                                        ]),
-                                        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
-                                            html.Label("Fechas: ", className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.DatePickerRange(id='ask_date',
-                                                                    start_date=DEFAULT_START_DATE,
-                                                                    end_date=DEFAULT_END_DATE),
-                                            ]),
-                                        ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Sitio: ', className='control label'),
-                                            html.Div(className='control dropdown', children=[
-                                                dcc.Dropdown(
-                                                    options=[{'label': 'ABC Color', 'value': 'abc'},
-                                                             {'label': 'La Nación Py', 'value': 'lanacion'},
-                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
-                                                             {'label': '5Dias', 'value': 'cincodias'},
-                                                             {'label': 'Todos', 'value': 'all'}],
-                                                    id='ask_site', value='all')
-                                            ]),
-
-                                        ]),
-                                        dcc.Loading(id='askbtn-loading', className='gifloader', type='default',
-                                                    children=[html.Button("Preguntar", id="ask", className='button is-info')]),
-                                        # dcc.Loading(id='poibtn-loading', className='gifloader', type='default',
-                                        #             children=[html.Button("POIs", id='poi-btn', className='button is-info')]),
-                                    ])
-            ]),
-            html.Div(className='column', id='askResults',
-                     children=[
-                         dcc.Loading(id='askrelated-loading', className='gifloader', children=[
-                             html.Div(id='answer', children=[]),
-                             html.Div(id='askrelated', children=[])
-                         ]),
-                     ]),
-
-        ]),
-    ]),
-    dcc.Loading(id='encontrados-loading', className='gifloader', children=[
-        html.H2(id='encontrados', className='title is-2 is-center'),]),
     html.Div(className='', children=[
         html.Div(className='columns', children=[
-            html.Div(className='column', id='formCol', children=[
-                    html.Div(className='form', children=[
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('Title contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='title_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('Body contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='body_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('URL contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='url_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('POI: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='poi_search',
-                                                          type='text',
-                                                          placeholder='Search for POI',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
-                                            html.Label("Fechas: ", className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.DatePickerRange(id='date_search',
-                                                                    start_date=DEFAULT_START_DATE,
-                                                                    end_date=DEFAULT_END_DATE),
-                                            ]),
-                                        ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Sitio: ', className='control label'),
-                                            html.Div(className='control dropdown', children=[
-                                                dcc.Dropdown(
-                                                    options=[{'label': 'ABC Color', 'value': 'abc'},
-                                                             {'label': 'La Nación Py', 'value': 'lanacion'},
-                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
-                                                             {'label': '5Dias', 'value': 'cincodias'},
-                                                             {'label': 'Todos', 'value': 'all'}],
-                                                    id='sel_site', value='all')
-                                            ]),
+            html.Div(className='column is-one-third', id='formCol', children=[
+                html.H3('Búsqueda:', className='title is-3 center'),
+                html.Div(id="search-form", className='form', children=[
+                    html.Div(className="field is-grouped", children=[
+                        html.Label('Title contains: ', className='control label'),
+                            html.Div(className='control', children=[
+                                dcc.Input(id='title_search',
+                                          type='text',
+                                          placeholder='Search in headlines',
+                                          className='input')
+                                ]),
+                    ]),
+                    html.Div(className="field is-grouped", children=[
+                        html.Label('Body contains: ', className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.Input(id='body_search',
+                                      type='text',
+                                      placeholder='Search in headlines',
+                                      className='input')
+                        ]),
+                    ]),
+                    html.Div(className="field is-grouped", children=[
+                        html.Label('URL contains: ', className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.Input(id='url_search',
+                                      type='text',
+                                      placeholder='Search in headlines',
+                                      className='input')
+                        ]),
+                    ]),
+                    html.Div(className="field is-grouped", children=[
+                        html.Label('POI: ', className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.Input(id='poi_search',
+                                      type='text',
+                                      placeholder='Search for POI',
+                                      className='input')
+                        ]),
+                    ]),
+                    html.Div(id="date_search_group", className='field is-grouped is-centered', children=[
+                        html.Label("Fechas: ", className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.DatePickerRange(id='date_search',
+                                                start_date=DEFAULT_START_DATE,
+                                                end_date=DEFAULT_END_DATE),
+                        ]),
+                    ]),
+                    html.Div(className='field is-grouped', children=[
+                        html.Div('Sitio: ', className='control label'),
+                        html.Div(className='control dropdown', children=[
+                            dcc.Dropdown(
+                                options=[{'label': 'ABC Color', 'value': 'abc'},
+                                         {'label': 'La Nación Py', 'value': 'lanacion'},
+                                         {'label': 'UltimaHora', 'value': 'ultimahora'},
+                                         {'label': '5Dias', 'value': 'cincodias'},
+                                         {'label': 'Todos', 'value': 'all'}],
+                                id='sel_site', value='all')
+                        ]),
 
-                                        ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Limit: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(type='number',
-                                                          min=1,
-                                                          id='limit',
-                                                          className='control input',
-                                                          value=500)
-                                            ])
+                    ]),
+                    html.Div(className='field is-grouped', children=[
+                        html.Div('Limit: ', className='control label'),
+                        html.Div(className='control', children=[
+                            dcc.Input(type='number',
+                                      min=1,
+                                      id='limit',
+                                      className='control input',
+                                      value=500)
+                        ])
+                    ]),
+                ]),
+                dcc.Loading(id='encontrados-loading', className='gifloader', children=[
+                    html.H4(id='encontrados', className='is-4 center'),
+                ]),
+                dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
+                            children=[html.Button("Buscar", id="search", className='button is-info')]),
+            ]),
+            html.Div(className='column', id='app-column', children=[
+                dcc.Tabs(id='view-tab', value='people', children=[
+                    dcc.Tab(label='Personas', value='people', children=[
+                        html.Div(className='columns', children=[
+                            html.Div(className='column', id='wordcloudCol', children=[
+                        dcc.Loading(id='wordcloud-loading', className='gifloader', children=[
+                            DashWordcloud(id='wordcloud',
+                                      list=[],
+                                      width=550, height=471,
+                                      gridSize=16,
+                                      color='#f0f0c0',
+                                      backgroundColor='#001f00',
+                                      shuffle=False,
+                                      rotateRatio=0.5,
+                                      shrinkToFit=True,
+                                      shape='circle',
+                                      hover=True
+                                      ),]),
+                    ]),
+                            html.Div(className='column', id='infoCol',
+                                     children=[
+                                         dcc.Loading(id='table-loading2', className='gifloader', children=[
+                                             html.Div(id='clicktable',
+                                                      className='clicktable',
+                                                      children=[html.H3('', id='whoisname',
+                                                                        className='title is-3',
+                                                                        hidden=True),
+                                                                html.Button('', id='whois', hidden=True)
+                                                                ]
+                                                      )
+                                         ]),
+                                     ]),
+                        ])
+                    ]),
+                    dcc.Tab(label='Chat', value='chat', children=[
+                        html.Div(className='chat', id='askFormCol', children=[
+                                    html.Div(className='chat-output',
+                                             id='askResults',
+                                             children=[
+                                                 dcc.Loading(id='askrelated-loading', className='gifloader', children=[
+                                                     html.Div(id='answer', children=[]),
+                                                     html.Div(id='askrelated', children=[])
+                                                 ]),
+                                     ]),
+                                    html.Div(className='chat-input', children=[
+                                                        html.Div(className="control chat-prompt", children=[
+                                                            dcc.Input(id='question',
+                                                                      type='text',
+                                                                      placeholder='Preguntar algo',
+                                                                      className='input')
+                                                        ]),
+                                                        dcc.Loading(id='askbtn-loading',
+                                                                    type='circle',
+                                                                    children=[
+                                                                        html.Button("Preguntar", id="ask",
+                                                                                    className='button is-info'
+                                                                                    )
+                                                        ]),
+                                                        html.Div(className='control is-grouped', children=[
+                                                            html.Div(className='control dropdown', children=[
+                                                                dcc.RadioItems(
+                                                                    options=[{'label': 'Vector', 'value': 'vector'},
+                                                                             {'label': 'Keyword', 'value': 'keyword'}],
+                                                                    id='ask_type', value='keyword', )
+                                                            ]),
 
-                                        ]),
-                                        # html.Div(className='field is-grouped', children=[
-                                        #     html.Div('Key: ', className='control label'),
-                                        #     html.Div(className='control dropdown', children=[
-                                        #         dcc.Dropdown(
-                                        #             options=[{'label': 'Personas', 'value': 'PER'},
-                                        #                      {'label': 'Organizaciones', 'value': 'ORG'},
-                                        #                      {'label': 'Misc.', 'value': 'MISC'}],
-                                        #             id='sel_key', value='PER')
-                                        #     ]),
-                                        # ]),
-                                        dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
-                                                    children=[html.Button("Buscar", id="search", className='button is-info')]),
-                                        # dcc.Loading(id='poibtn-loading', className='gifloader', type='default',
-                                        #             children=[html.Button("POIs", id='poi-btn', className='button is-info')]),
-                                    ])
+                                                        ]),
+                                                    ]),
+
+                            ]),
+
+                    ])
+                ])
             ]),
-            html.Div(className='column', id='wordcloudCol', children=[
-                dcc.Loading(id='wordcloud-loading', className='gifloader', children=[
-                    DashWordcloud(id='wordcloud',
-                              list=[],
-                              width=700, height=600,
-                              gridSize=16,
-                              color='#f0f0c0',
-                              backgroundColor='#001f00',
-                              shuffle=False,
-                              rotateRatio=0.5,
-                              shrinkToFit=True,
-                              shape='circle',
-                              hover=True
-                              ),]),
-            ]),
-            html.Div(className='column', id='infoCol',
-                     children=[
-                         dcc.Loading(id='table-loading', className='gifloader', children=[
-                             html.Div(id='clicktable', className='clicktable', children=[])
-                         ]),
-                     ]),
+
+
 
         ]),
     ]),
@@ -218,24 +204,34 @@ app.layout = html.Div([
         'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id'],
         'cincodias': xata.query('news_publisher', filter={'publisher_name': 'cincodias'})['records'][0]['id'],
         'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
-    })
+    }),
+    dcc.Store(id='whois-action', data=True)
 ])
-
+server = app.server
 @app.callback(
     [Output('answer', 'children'),
      Output('askrelated', 'children'),
      Output('ask', 'children')],
     [Input('ask', 'n_clicks'),
+     Input('whois-action', 'data'),
      State('question', 'value'),
      State('ask_type', 'value'),
-     State('ask_date', 'start_date'),
-     State('ask_date', 'end_date'),
-     State('ask_site', 'value'),
+     State('title_search', 'value'),
+     State('date_search', 'start_date'),
+     State('date_search', 'end_date'),
+     Input('sel_site', 'value'),
+     State('limit', 'value'),
+     State('body_search', 'value'),
+     State('url_search', 'value'),
      State('sites', 'data')]
 )
-def ask_table(n, question, ask_type, start_date, end_date, site, sites):
-    if n:
-        parms = {'question': question, 'searchType': ask_type}
+def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit, body, url_search, sites):
+    if n or m:
+        fquestion = f"La pregunta es: '{question}'. \n Fin de la pregunta. " \
+                    f"Responde la pregunta de arriba , en castellano. \n Considera que la fecha de hoy es " \
+                    f"{datetime.now().strftime('%Y-%m-%d')}." \
+                    f"Se lo mas detallado posible."
+        parms = {'question': fquestion, 'searchType': ask_type}
         query = {}
         date_q = {}
         if start_date:
@@ -254,7 +250,15 @@ def ask_table(n, question, ask_type, start_date, end_date, site, sites):
                 query['publisher'] = sites[site]
             else:
                 query.pop('publisher', None)
-
+        if title:
+            query['title'] = {'$contains': title}
+            # {'title':{'$contains': text.lower()}},
+            # {'title':{'$contains': text.capitalize()}}
+            # ]
+        if body:
+            query['article_body'] = {'$contains': body}
+        if url_search:
+            query['url'] = {'$contains': url_search}
         if ask_type == 'vector':
             parms['vectorSearch'] = {'column': 'embedding', 'contentColumn': 'article_body', 'filter': query}
         else:
@@ -532,11 +536,26 @@ def wordcloud_click(clickdata, articles):
                 result.append(html.Li(children=[
                     article['date'][:10]+': ',
                     html.A(article['title'], href=article['url'])]))
-        return html.Div(children=[html.H3(name, className='title is-3'),
+        return html.Div(children=[html.Div(children=[html.H3(name, id='whoisname', className='title is-3'),
+                                                     html.Button('Quién es?', className='button is-info', id='whois'),
+                                                     ],
+                                           className='wordcloud-info-panel'),
                                   html.Div(children=result)
                ])
     else:
         return ['']
+
+
+@app.callback(
+    [Output('whois-action', 'data'),
+     Output('question', 'value'),
+     Output('view-tab', 'value')],
+    [Input('whois', 'n_clicks'), State('whoisname', 'children'), State('whois-action', 'data'), State('view-tab', 'value')]
+)
+def whois(n, name, m, tab):
+    if n:
+        return True, f"Quien es {name}?", 'chat'
+    return False, '', tab
 
 
 def wordcloud_hover(item, dimension, event):
