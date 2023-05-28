@@ -3,22 +3,31 @@ VENV_DIR := venv
 REQUIREMENTS_FILE := requirements-dev.txt
 BRANCH ?= 'main'
 LIMIT ?= 1
+SITES ?= ultimahora,abc,lanacion,cincodias
 
 # Define the name of the app and the Python file that contains the Dash app
 APP_NAME = dash_app
 APP_FILE = dashapp.app
 PID_FILE = $(APP_NAME).pid
 
-.PHONY: venv scrape embed doc
+.PHONY: venv scrape embed doc clean deployvenv
 
 # Create virtual environment and install dependencies
-venv:
+venv: clean
 	@echo "Creating virtual environment..."
 	@test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
 	. ./$(VENV_DIR)/bin/activate; \
 		pip install -r $(REQUIREMENTS_FILE); \
 		python -m spacy download es_core_news_md;
 	@echo "Virtual environment created and requirements installed."
+
+deployenv: clean
+	@echo "Creating virtual environment..."
+	@test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
+	. ./$(VENV_DIR)/bin/activate; \
+		pip install -r requirements.txt; \
+	  	echo "Virtual environment created and requirements installed.";
+
 
 # Remove virtual environment directory
 clean:
@@ -37,7 +46,7 @@ test:
 scrape:
 	. ./$(VENV_DIR)/bin/activate; \
 		echo "Scraping to branch $(BRANCH)"; \
-		python -m routines.scrape $(BRANCH) $(LIMIT);
+		python -m routines.scrape $(BRANCH) $(LIMIT) $(SITES);
 
 embed:
 	. ./$(VENV_DIR)/bin/activate; \
@@ -50,10 +59,6 @@ tag:
 		export PYTHONPATH=$(CURDIR); \
 		echo "Tagging articles"; \
 		python -m routines.tag $(BRANCH) $(LIMIT);
-
-scrape-body:
-	. ./$(VENV_DIR)/bin/activate; \
-		python -m routines.scrape_body $(BRANCH) $(LIMIT);
 
 frontend:
 	@. ./$(VENV_DIR)/bin/activate; \

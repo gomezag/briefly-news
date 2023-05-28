@@ -2,6 +2,5 @@ dash==2.10.0
 dash-core-components==2.0.0
 dash-holoniq-wordcloud==0.0.4
 dash-html-components==2.0.0
-pandas==2.0.1
 python-dotenv==0.21.0
 xata==0.10.1

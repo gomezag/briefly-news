@@ -1,6 +1,9 @@
-name: Scrape
+name: Scrape ABC
 
 on:
+  schedule:
+    - cron: '0 7 * * *'
+    
   workflow_dispatch:
 
 env:
@@ -12,7 +15,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 10
     strategy:
       matrix:
         python-version: ["3.9", ]
@@ -34,4 +37,4 @@ jobs:
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
       - name: Scrape sites
         run: |
-          make scrape LIMIT=100
+          make scrape LIMIT=100 SITES=abc

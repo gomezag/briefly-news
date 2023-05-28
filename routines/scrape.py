@@ -7,7 +7,13 @@ from llm.utils import get_related_people
 
 def scrape_headlines(scraper, limit=15):
     for category in scraper.categories:
-        headlines, r = scraper.get_headlines(category, limit=limit)
+        try:
+            headlines, r = scraper.get_headlines(category, limit=limit)
+        except Exception as e:
+            logging.info(f"Error in category {category}.")
+            logging.info(repr(e))
+            continue
+
         logging.info(f"Found {len(headlines)} articles for category {category}.")
         N = len(headlines)
         skips = 0
@@ -39,17 +45,10 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.root.setLevel(logging.INFO)
 
-    try:
-        branch = sys.argv[1]
-    except IndexError:
-        branch = 'main'
-
-    try:
-        limit = int(sys.argv[2])
-    except IndexError:
-        limit = 15
-
-    for site in ['abc', 'lanacion', 'cincodias']:
+    branch = sys.argv[1]
+    limit = int(sys.argv[2])
+    sites = sys.argv[3].split(',')
+    for site in sites:
         try:
             scraper = Scraper(site, branch=branch)
             scrape_headlines(scraper, limit=limit)

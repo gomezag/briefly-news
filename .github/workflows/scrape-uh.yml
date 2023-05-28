@@ -1,12 +1,21 @@
-name: Scrape Bodies
+name: Scrape UltimaHora
 
 on:
+  schedule:
+    - cron: '15 7 * * *'
+    
   workflow_dispatch:
+
+env:
+  LANG: "es_ES.UTF-8"
+  LANGUAGE: "es_ES:es"
+  LC_ALL: "es_ES.UTF-8"
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       matrix:
         python-version: ["3.9", ]
@@ -19,6 +28,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Setup environment
         run: |
+          sudo locale-gen es_ES.UTF-8
+          sudo dpkg-reconfigure locales
           python -m pip install --upgrade pip
           make clean
           make venv
@@ -26,4 +37,4 @@ jobs:
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
       - name: Scrape sites
         run: |
-          make scrape-body LIMIT=30
+          make scrape LIMIT=100 SITES=ultimahora
