@@ -403,6 +403,7 @@ def update_statistics(n, zoom_info):
                     zoom_info[f'y{axis_name}.range[1]']
                 ]
     if fig:
+        fig['layout']['uirevision'] = '1'
         return fig, {'display': 'none'}, {'display': 'inline'}
     else:
         return None, {'display': 'inline'}, {'display': 'none'}
