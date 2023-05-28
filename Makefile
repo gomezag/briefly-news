@@ -10,16 +10,24 @@ APP_NAME = dash_app
 APP_FILE = dashapp.app
 PID_FILE = $(APP_NAME).pid
 
-.PHONY: venv scrape embed doc
+.PHONY: venv scrape embed doc clean deployvenv
 
 # Create virtual environment and install dependencies
-venv:
+venv: clean
 	@echo "Creating virtual environment..."
 	@test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
 	. ./$(VENV_DIR)/bin/activate; \
 		pip install -r $(REQUIREMENTS_FILE); \
 		python -m spacy download es_core_news_md;
 	@echo "Virtual environment created and requirements installed."
+
+deployenv: clean
+	@echo "Creating virtual environment..."
+	@test -d $(VENV_DIR) || python -m venv $(VENV_DIR)
+	. ./$(VENV_DIR)/bin/activate; \
+		pip install -r requirements.txt; \
+	  	echo "Virtual environment created and requirements installed.";
+
 
 # Remove virtual environment directory
 clean:
