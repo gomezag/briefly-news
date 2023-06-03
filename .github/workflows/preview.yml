@@ -32,10 +32,10 @@ jobs:
           cp requirements.txt vercel/
           cp vercel.json vercel/
           cd vercel
-          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
           vercel build --token=${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy Project Artifacts to Vercel
         run: |
           cd vercel
-          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --archive=tgz --prod
+          vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --archive=tgz
