@@ -2,9 +2,6 @@ name: Scrape
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 14 * * *'
-
 env:
   LANG: "es_ES.UTF-8"
   LANGUAGE: "es_ES:es"
