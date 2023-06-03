@@ -14,7 +14,7 @@ def validate_url(url):
 def sample_cat(site):
     # Only test one
     if site == 'abc':
-        catno = 16
+        catno = 9
     elif site == 'lanacion':
         catno = 0
     else:

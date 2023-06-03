@@ -18,6 +18,10 @@
         {
           "name": "endpoints",
           "type": "multiple"
+        },
+        {
+          "name": "label",
+          "type": "string"
         }
       ]
     },
@@ -79,8 +83,12 @@
           }
         },
         {
-          "name": "process_time",
-          "type": "float"
+          "name": "POIs",
+          "type": "multiple"
+        },
+        {
+          "name": "tokens",
+          "type": "int"
         }
       ]
     },
@@ -110,6 +118,19 @@
         {
           "name": "description",
           "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "POI",
+      "columns": [
+        {
+          "name": "label",
+          "type": "string"
+        },
+        {
+          "name": "articles",
+          "type": "multiple"
         }
       ]
     }

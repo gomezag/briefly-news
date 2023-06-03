@@ -2,11 +2,11 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output, State
 from database.xata_api import XataAPI
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from dash_holoniq_wordcloud import DashWordcloud
 
 # Initialize the app
-app = dash.Dash(__name__)
+dashapp = dash.Dash(__name__)
 
 xata = XataAPI()
 
@@ -15,7 +15,7 @@ DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
 loading_style = {'position': 'absolute', 'align-self': 'center'}
 
 # Define the layout of the app
-app.layout = html.Div([
+dashapp.layout = html.Div([
     html.H1("What's going on man!", className='title is-1'),
     html.Div(className='container', children=[
         html.Div(className='columns', children=[
@@ -87,11 +87,8 @@ app.layout = html.Div([
                         html.Div('Sitio: ', className='control label'),
                         html.Div(className='control dropdown', children=[
                             dcc.Dropdown(
-                                options=[{'label': 'ABC Color', 'value': 'abc'},
-                                         {'label': 'La Nación Py', 'value': 'lanacion'},
-                                         {'label': 'UltimaHora', 'value': 'ultimahora'},
-                                         {'label': '5Dias', 'value': 'cincodias'},
-                                         {'label': 'Todos', 'value': 'all'}],
+                                options=[{'label': site['label'], 'value': site['id']}
+                                         for site in xata.query('news_publisher')['records']]+[{'label': 'Todos', 'value': 'all'}],
                                 id='sel_site', value='all')
                         ]),
 
@@ -195,18 +192,12 @@ app.layout = html.Div([
     ]),
 
     dcc.Store(id='articles'),
-    dcc.Store(id='sites', data={
-        'abc': xata.query('news_publisher', filter={'publisher_name': 'abc'})['records'][0]['id'],
-        'lanacion': xata.query('news_publisher', filter={'publisher_name': 'lanacion'})['records'][0]['id'],
-        'cincodias': xata.query('news_publisher', filter={'publisher_name': 'cincodias'})['records'][0]['id'],
-        'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
-    }),
     dcc.Store(id='whois-action', data=True)
 ])
-server = app.server
+server = dashapp.server
 
 
-@app.callback(
+@dashapp.callback(
     [Output('answer', 'children'),
      Output('askrelated', 'children'),
      Output('ask', 'children')],
@@ -220,10 +211,9 @@ server = app.server
      Input('sel_site', 'value'),
      State('limit', 'value'),
      State('body_search', 'value'),
-     State('url_search', 'value'),
-     State('sites', 'data')]
+     State('url_search', 'value')]
 )
-def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit, body, url_search, sites):
+def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit, body, url_search):
     if n or m:
         fquestion = f"La pregunta es: '{question}'. \n Fin de la pregunta. " \
                     f"Responde la pregunta de arriba , en castellano. \n Considera que la fecha de hoy es " \
@@ -234,18 +224,22 @@ def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit
         date_q = {}
         if start_date:
             st_date = datetime.strptime(start_date, '%Y-%m-%d')
+            st_date = datetime.combine(st_date.date(), time.min)
         else:
             st_date = datetime.strptime(DEFAULT_START_DATE, '%Y-%m-%d')
+            st_date = datetime.combine(st_date.date(), time.min)
         date_q['$gt'] = st_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         if end_date:
             ed_date = datetime.strptime(end_date, '%Y-%m-%d')
+            ed_date = datetime.combine(ed_date.date(), time.max)
         else:
             ed_date = datetime.strptime(DEFAULT_END_DATE, '%Y-%m-%d')
+            ed_date = datetime.combine(ed_date.date(), time.max)
         date_q['$lt'] = ed_date.strftime('%Y-%m-%dT%H:%M:%SZ')
         query['date'] = date_q
         if site:
             if site != 'all':
-                query['publisher'] = sites[site]
+                query['publisher'] = site
             else:
                 query.pop('publisher', None)
         if title:
@@ -275,14 +269,15 @@ def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit
                     html.A(article['title'], href=article['url']),
                     html.P(f"({article['id']})")
                 ]))
-
             return answer, result, 'Preguntar'
         else:
-            return res.json()['message'], None, 'Preguntar'
-    return None, None, 'Preguntar'
+            msg = ('No se pudo completar la operación. '
+                   'Intentalo de nuevo más tarde, o ampliando el rango de fechas.')
+            return msg, None, 'Preguntar'
+    return '', None, 'Preguntar'
 
 
-@app.callback(
+@dashapp.callback(
     [Output('resumen', 'children')],
     [Input('heartbeat', 'n_intervals')]
 )
@@ -313,15 +308,15 @@ def update_summary(n):
     results_children = [
         html.Div(className='box', children=[
             html.H3(className='title is-3', children=[f'Total de artículos: {total_articles}']),
-            html.H3(className='title is-3', children=[f'Artículos con tags: {tagged_articles} ']),
-            html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
-            html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
+            #html.H3(className='title is-3', children=[f'Artículos con tags: {tagged_articles} ']),
+            #html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
+            #html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
         ])
     ]
     return results_children
 
 
-@app.callback(
+@dashapp.callback(
     [Output('article_timeline', 'figure'), Output('graph-loading', 'style'), Output('article_timeline', 'style')],
     [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
 )
@@ -390,6 +385,7 @@ def update_statistics(n, zoom_info):
             'yaxis': {},
         }
     }
+    fig['layout']['uirevision'] = '1'
     if zoom_info:
         for axis_name in ['axis', ]:
             if f'x{axis_name}.range[0]' in zoom_info:
@@ -403,27 +399,25 @@ def update_statistics(n, zoom_info):
                     zoom_info[f'y{axis_name}.range[1]']
                 ]
     if fig:
-        fig['layout']['uirevision'] = '1'
         return fig, {'display': 'none'}, {'display': 'inline'}
     else:
         return None, {'display': 'inline'}, {'display': 'none'}
 
 
-@app.callback(
+@dashapp.callback(
     [Output('result_table', 'children')],
-    [Input('articles', 'data'),
-     State('sites', 'data')]
+    [Input('articles', 'data')]
 )
-def update_results_table(articles, sites):
+def update_results_table(articles):
     rows = []
+    sites = xata.query('news_publisher')['records']
     for article in articles:
         row = []
         for key in ['date', 'title', 'subtitle', 'url', 'authors']:
             if key == 'url':
-                try:
-                    site = [key for key, value in sites.items() if value == article['publisher']['id']][0]
-                except:
-                    site = article['publisher']
+                site = next((site['label'] for site in sites if site['id'] == article['publisher']['id']), None)
+                if not site:
+                    site = 'Desconocido'
                 cell = html.Td(html.A(str(site), href=article[key]))
             elif key == 'authors':
                 cell = html.Td(", ".join(article[key]))
@@ -431,13 +425,13 @@ def update_results_table(articles, sites):
                 cell = html.Td(article[key])
             row.append(cell)
         rows.append(html.Tr(children=row))
-    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'URL', 'Autores', 'Sitio']]
+    children = [html.Th(key) for key in ['Fecha', 'Titular', 'Resumen', 'Link', 'Autores']]
     children.extend(rows)
     table = html.Table(children=children, className='table')
     return [table]
 
 
-@app.callback(
+@dashapp.callback(
     [Output("encontrados", "children"),
      Output('articles', 'data'),
      Output('search', 'children')],
@@ -512,48 +506,50 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
     return f"Articulos encontrados: {len(articles)}", articles, 'Buscar'
 
 
-@app.callback(
+@dashapp.callback(
     [Output('wordcloud', 'list')],
     [Input('articles', 'data')]
 )
 def update_wordcloud(articles):
-    persons = articles.copy()
-    if 'POIs' in [key for article in persons for key in article]:
-        poi_counts = {}
-        for article in persons:
-            pois = article.get('POIs')
-            if pois:
-                for poi in pois:
-                    if poi in poi_counts:
-                        poi_counts[poi] += 1
-                    else:
-                        poi_counts[poi] = 1
+    if articles:
+        persons = articles.copy()
+        if 'POIs' in [key for article in persons for key in article]:
+            poi_counts = {}
+            for article in persons:
+                pois = article.get('POIs')
+                if pois:
+                    for poi in pois:
+                        if poi in poi_counts:
+                            poi_counts[poi] += 1
+                        else:
+                            poi_counts[poi] = 1
 
-        persons = []
-        for poi, count in poi_counts.items():
-            persons.append({'POIs': poi, 'count': count})
+            persons = []
+            for poi, count in poi_counts.items():
+                persons.append({'POIs': poi, 'count': count})
 
-        persons.sort(key=lambda x: x['count'], reverse=True)
-        x = [person['count'] for person in persons]
-        a = 10
-        b = 30
-        x_min = min(x)
-        x_max = max(x)
-        persons_norm = []
-        for person in persons:
-            count_norm = a + (person['count'] - x_min) * (b - a) / (x_max - x_min + 1)
-            person['count_norm'] = count_norm
-            person['label'] = str(person['POIs']) + ' - ' + str(person['count'])
-            persons_norm.append([person['POIs'], person['count_norm'], person['label']])
+            persons.sort(key=lambda x: x['count'], reverse=True)
+            x = [person['count'] for person in persons]
+            a = 10
+            b = 30
+            x_min = min(x)
+            x_max = max(x)
+            persons_norm = []
+            for person in persons:
+                count_norm = a + (person['count'] - x_min) * (b - a) / (x_max - x_min + 1)
+                person['count_norm'] = count_norm
+                person['label'] = str(person['POIs']) + ' - ' + str(person['count'])
+                persons_norm.append([person['POIs'], person['count_norm'], person['label']])
 
-        bpersons = persons_norm
-    else:
-        bpersons = []
+            bpersons = persons_norm
+        else:
+            bpersons = []
 
-    return [bpersons]
+        return [bpersons]
+    return [[]]
 
 
-@app.callback(
+@dashapp.callback(
     Output('clicktable', 'children'),
     [Input('wordcloud', 'click'),
      State('articles', 'data')]
@@ -577,7 +573,7 @@ def wordcloud_click(clickdata, articles):
         return ['']
 
 
-@app.callback(
+@dashapp.callback(
     [Output('whois-action', 'data'),
      Output('question', 'value'),
      Output('view-tab', 'value')],
@@ -593,6 +589,9 @@ def whois(n, name, m, tab):
 def wordcloud_hover(item, dimension, event):
     return True
 
+
+app = dashapp.server
+
 # Run the app
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    dashapp.run_server(debug=True)

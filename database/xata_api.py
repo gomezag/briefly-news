@@ -17,7 +17,21 @@ XATA_DB_URL = os.getenv('XATA_DB_URL')
 class XataAPI(object):
     def __init__(self, *args, **kwargs):
         self.branch = kwargs.pop('branch', 'main')
-        self.client = XataClient(api_key=XATA_API_KEY, db_url=f"{XATA_DB_URL}:{self.branch}")
+        self.client = None
+        if kwargs.get('xata_url') and kwargs.get('xata_key'):
+            self.login(kwargs.get('xata_key'), kwargs.get('xata_url'))
+        elif XATA_API_KEY and XATA_DB_URL:
+            self.login(XATA_API_KEY, XATA_DB_URL)
+
+    def login(self, key, url):
+        self.client = XataClient(api_key=key,
+                                 db_url=f"{url}:{self.branch}")
+
+    @property
+    def is_log_in(self):
+        if self.client:
+            return True
+        return False
 
     def process_parms(self, params):
         """
