@@ -468,7 +468,7 @@ def update_search(btn, text, start_date, end_date, site, limit, body, url_search
         query['article_body'] = {'$contains': body}
     if site:
         if site != 'all':
-            query['publisher.publisher_name'] = site
+            query['publisher'] = site
         else:
             query.pop('publisher.publisher_name', None)
 
