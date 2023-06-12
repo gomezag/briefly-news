@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import urllib.parse as urlparse
 
 from scrapers.base_scrapers import ArcPublishingScraper
-
+import time
 
 class ABCScraper(ArcPublishingScraper):
 
@@ -29,10 +29,24 @@ class ABCScraper(ArcPublishingScraper):
             raise ValueError(f'Headlines endpoint not defined for {self.__class__}')
         query = endpoint['data']
         query['query'].update(category)
-        query['query'].update(**kwargs)
         url = endpoint['path']
-        r = self.query(url, **query).json()
-        headlines = r['content_elements']
+        headlines = []
+        limit = kwargs.pop('limit')
+        offset = kwargs.pop('offset')
+        i = int(offset)
+        limit = int(offset)+limit
+        while i < min(limit, offset+1000):
+            kwargs.update(dict(limit=str(min(100, limit-i)),
+                               offset=str(i)))
+            query['query'].update(**kwargs)
+            r = self.query(url, **query).json()
+            arts = r['content_elements']
+            if len(arts):
+                headlines.extend(arts)
+                i += 100
+            else:
+                break
+
         articles = []
         for head in headlines:
             title = head['headlines']['basic']
@@ -43,7 +57,7 @@ class ABCScraper(ArcPublishingScraper):
             # first_publish = head['publish_date']
             url = urlparse.urljoin(self._parameters['website'], head['website_url'])
             owner = head['owner']['id']
-            source = head['source']['name']
+            source = head.get('source', {}).get('name', self.site)
             try:
                 authors = [c['_id'] for c in head['credits']['by'] if c['type'] == 'author']
             except KeyError:

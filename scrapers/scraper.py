@@ -1,6 +1,7 @@
 import json
 import pandas as pd
 import logging
+import threading
 
 from scrapers.abc.scraper import ABCScraper
 from scrapers.lanacion.scraper import LaNacionScraper
@@ -53,7 +54,7 @@ class Scraper:
         endpoints = parameters.pop('endpoints', None)
         if categories:
             try:
-                logging.info("Parsing categories...")
+                logging.info("Parsing categories "+",".join([str(c) for c in categories]))
                 self._categories = [json.loads(cat.replace("'", '"')) for cat in categories]
             except:
                 logging.info("Could not parse categories. Initializing to None.")
@@ -132,11 +133,6 @@ class Scraper:
     def categories(self):
         if self._categories == [] or not self._categories:
             self.load_parameters()
-        if self._categories == [] or not self._categories:
-            try:
-                self._categories = self.get_categories()
-            except AttributeError:
-                self._categories = []
         return self._categories
 
     @property
@@ -155,6 +151,7 @@ class BaseScraper(Scraper):
         self._query = {}
         self._parameters = {}
         self._db = XataAPI(branch=kwargs.pop('branch', 'main'))
+        self.lock = threading.Lock()
         self.load_parameters()
 
 
