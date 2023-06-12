@@ -22,13 +22,24 @@ class LaNacionScraper(ArcPublishingScraper):
             raise ValueError(f'Headlines endpoint not defined for {self.__class__}')
         query = endpoint['data']
         query['query'].update(category)
-        limit = kwargs.pop('limit', None)
-        if limit:
-            query['query'].update({'feedSize': limit})
-        query['query'].update(**kwargs)
         url = endpoint['path']
-        r = self.query(url, **query).json()
-        headlines = r['content_elements']
+        headlines = []
+        limit = kwargs.pop('limit')
+        offset = kwargs.pop('offset')
+        i = int(offset)
+        limit = int(offset)+limit
+        while i < min(limit, offset+1000):
+            kwargs.update(dict(feedSize=str(min(100, limit-i)),
+                               offset=str(i)))
+            query['query'].update(**kwargs)
+            r = self.query(url, **query).json()
+            arts = r['content_elements']
+            if len(arts):
+                headlines.extend(arts)
+                i += 100
+            else:
+                break
+
         articles = []
         for head in headlines:
             title = head['headlines']['basic']
