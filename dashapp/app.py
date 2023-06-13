@@ -184,10 +184,7 @@ def init_dashboard(server):
                             dcc.Tab(label='Stats', value='stats', children=[
                                 html.Div(className='column', id='resumen_graph', children=[
                                     html.Div(id='resumen', children=[]),
-                                    dcc.Graph(id='article_timeline', className='stats-graph', style={"display": "none"}),
-                                    html.Img(id='graph-loading',
-                                             src="https://cdn.dribbble.com/users/1040528/screenshots/5100277/eye.gif",
-                                             children=[], style={"display": "inline"})
+                                    dcc.Graph(id='article_timeline', className='stats-graph')
                                 ]
                                          ),
                                 #            html.Div(className='column', children=[]),
@@ -338,7 +335,7 @@ def init_callbacks(app):
 
 
     @app.callback(
-        [Output('article_timeline', 'figure'), Output('graph-loading', 'style'), Output('article_timeline', 'style')],
+        [Output('article_timeline', 'figure')],
         [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
     )
     def update_statistics(n, zoom_info):
@@ -420,9 +417,9 @@ def init_callbacks(app):
                     ]
         if fig:
             fig['layout']['uirevision'] = '1'
-            return fig, {'display': 'none'}, {'display': 'inline'}
+            return fig
         else:
-            return None, {'display': 'inline'}, {'display': 'none'}
+            return None
 
 
     @app.callback(
