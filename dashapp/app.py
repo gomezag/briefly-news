@@ -30,89 +30,98 @@ def init_dashboard(server):
                     # ]),
                     html.Div(className='column', id='app-column', children=[
                         dcc.Tabs(id='view-tab', value='filter', children=[
-                            dcc.Tab(label='Filter', value='filter', children=[
-                                html.Div(className='container', children=[
-                                    html.H3('Búsqueda:', className='title is-3 center'),
-                                    html.Div(id="search-form", className='form', children=[
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('Title contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='title_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('Body contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='body_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('URL contains: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='url_search',
-                                                          type='text',
-                                                          placeholder='Search in headlines',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(className="field is-grouped", children=[
-                                            html.Label('POI: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(id='poi_search',
-                                                          type='text',
-                                                          placeholder='Search for POI',
-                                                          className='input')
-                                            ]),
-                                        ]),
-                                        html.Div(id="date_search_group", className='field is-grouped is-centered',
-                                                 children=[
-                                                     html.Label("Fechas: ", className='control label'),
-                                                     html.Div(className='control', children=[
-                                                         dcc.DatePickerRange(id='date_search',
-                                                                             start_date=DEFAULT_START_DATE,
-                                                                             end_date=DEFAULT_END_DATE),
-                                                     ]),
-                                                 ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Sitio: ', className='control label'),
-                                            html.Div(className='control dropdown', children=[
-                                                dcc.Dropdown(
-                                                    options=[{'label': 'ABC Color', 'value': 'abc'},
-                                                             {'label': 'La Nación Py', 'value': 'lanacion'},
-                                                             {'label': 'UltimaHora', 'value': 'ultimahora'},
-                                                             {'label': '5Dias', 'value': 'cincodias'},
-                                                             {'label': 'Todos', 'value': 'all'}],
-                                                    id='sel_site', value='all')
-                                            ]),
+                            dcc.Tab(label='Filtro', value='filter', children=[
+                                html.Div(className='columns', children=[
+                                    html.Div(className='column', children=[
+                                        html.Div(className='container', children=[
+                                            html.H3('Búsqueda:', className='title is-3 center'),
+                                            html.Div(id="search-form", className='form', children=[
+                                                html.Div(className="field is-grouped", children=[
+                                                    html.Label('Título: ', className='control label'),
+                                                    html.Div(className='control', children=[
+                                                        dcc.Input(id='title_search',
+                                                                  type='text',
+                                                                  placeholder='Search in headlines',
+                                                                  className='input')
+                                                    ]),
+                                                ]),
+                                                html.Div(className="field is-grouped", children=[
+                                                    html.Label('Cuerpo: ', className='control label'),
+                                                    html.Div(className='control', children=[
+                                                        dcc.Input(id='body_search',
+                                                                  type='text',
+                                                                  placeholder='Search in headlines',
+                                                                  className='input')
+                                                    ]),
+                                                ]),
+                                                html.Div(className="field is-grouped", children=[
+                                                    html.Label('URL: ', className='control label'),
+                                                    html.Div(className='control', children=[
+                                                        dcc.Input(id='url_search',
+                                                                  type='text',
+                                                                  placeholder='Search in headlines',
+                                                                  className='input')
+                                                    ]),
+                                                ]),
+                                                html.Div(className="field is-grouped", children=[
+                                                    html.Label('Nombre: ', className='control label'),
+                                                    html.Div(className='control', children=[
+                                                        dcc.Input(id='poi_search',
+                                                                  type='text',
+                                                                  placeholder='Search for POI',
+                                                                  className='input')
+                                                    ]),
+                                                ]),
+                                                html.Div(id="date_search_group",
+                                                         className='field is-grouped is-centered',
+                                                         children=[
+                                                             html.Label("Fecha: ", className='control label'),
+                                                             html.Div(className='control', children=[
+                                                                 dcc.DatePickerRange(id='date_search',
+                                                                                     start_date=DEFAULT_START_DATE,
+                                                                                     end_date=DEFAULT_END_DATE),
+                                                             ]),
+                                                         ]),
+                                                html.Div(className='field is-grouped', children=[
+                                                    html.Div('Sitio: ', className='control label'),
+                                                    html.Div(className='control dropdown', children=[
+                                                        dcc.Dropdown(
+                                                            options=[{'label': 'ABC Color', 'value': 'abc'},
+                                                                     {'label': 'La Nación Py', 'value': 'lanacion'},
+                                                                     {'label': 'UltimaHora', 'value': 'ultimahora'},
+                                                                     {'label': '5Dias', 'value': 'cincodias'},
+                                                                     {'label': 'Todos', 'value': 'all'}],
+                                                            id='sel_site', value='all')
+                                                    ]),
 
-                                        ]),
-                                        html.Div(className='field is-grouped', children=[
-                                            html.Div('Limit: ', className='control label'),
-                                            html.Div(className='control', children=[
-                                                dcc.Input(type='number',
-                                                          min=1,
-                                                          id='limit',
-                                                          className='control input',
-                                                          value=500)
-                                            ])
+                                                ]),
+                                                html.Div(className='field is-grouped', children=[
+                                                    html.Div('Limite: ', className='control label'),
+                                                    html.Div(className='control', children=[
+                                                        dcc.Input(type='number',
+                                                                  min=1,
+                                                                  id='limit',
+                                                                  className='control input',
+                                                                  value=500)
+                                                    ])
+                                                ]),
+                                            ]),
+                                            dcc.Loading(id='encontrados-loading', className='gifloader', children=[
+                                                html.H4(id='encontrados', className='is-4 center'),
+                                            ]),
+                                            dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
+                                                        children=[
+                                                            html.Button("Buscar", id="search",
+                                                                        className='button is-info')
+                                                        ])
                                         ]),
                                     ]),
-                                    dcc.Loading(id='encontrados-loading', className='gifloader', children=[
-                                        html.H4(id='encontrados', className='is-4 center'),
-                                    ]),
-                                    dcc.Loading(id='searchbtn-loading', className='gifloader', type='default',
-                                                children=[
-                                                    html.Button("Buscar", id="search", className='button is-info')
-                                                ])
-                                ]),
+                                    html.Div(className='column', children=[
+                                        html.Div(id='resumen', children=[]),
+                                    ])
+                                ])
                             ]),
-                            dcc.Tab(label='POI', value='poi', children=[
+                            dcc.Tab(label='Nombres', value='poi', children=[
                                 html.Div(className='columns', children=[
                                     html.Div(className='column', id='wordcloudCol', children=[
                                         dcc.Loading(id='wordcloud-loading', className='gifloader', children=[
@@ -150,7 +159,8 @@ def init_dashboard(server):
                                              id='askResults',
                                              children=[
                                                  dcc.Loading(id='askrelated-loading', className='gifloader', children=[
-                                                     html.Div(id='answer', children=[])
+                                                     html.Div(id='answer', children=[]),
+                                                     html.Div(id='askrelated', children=[]),
                                                  ]),
                                              ]),
                                     html.Div(className='chat-input', children=[
@@ -183,11 +193,9 @@ def init_dashboard(server):
                             ]),
                             dcc.Tab(label='Stats', value='stats', children=[
                                 html.Div(className='column', id='resumen_graph', children=[
-                                    html.Div(id='resumen', children=[]),
-                                    dcc.Graph(id='article_timeline', className='stats-graph')
-                                ]
-                                         ),
-                                #            html.Div(className='column', children=[]),
+                                    dcc.Graph(id='article_timeline', className='stats-graph'),
+                                ]),
+                                html.Div(className='column', id='related_graph', children=[]),
                             ]),
                         ])
                     ]),
@@ -210,13 +218,22 @@ def init_dashboard(server):
             'cincodias': xata.query('news_publisher', filter={'publisher_name': 'cincodias'})['records'][0]['id'],
             'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
         }),
-        dcc.Store(id='whois-action', data=True)
+        dcc.Store(id='whois-action', data=True),
+        dcc.Store(id='filter', data={})
     ])
     init_callbacks(app)
     return app.server
 
 
 def init_callbacks(app):
+    @app.callback(
+        Output("related_graph", "children"),
+        Input("article_timeline", "clickData"),
+    )
+    def graph_click(clickData):
+
+        return [str(clickData)]
+
     @app.callback(
         [Output('answer', 'children'),
          Output('askrelated', 'children'),
@@ -297,35 +314,37 @@ def init_callbacks(app):
 
     @app.callback(
         [Output('resumen', 'children')],
-        [Input('heartbeat', 'n_intervals')]
+        [Input('heartbeat', 'n_intervals'),
+         State('filter', 'data')]
     )
-    def update_summary(n):
-        res = xata.client.search_and_filter().aggregateTable('news_article', {
+    def update_summary(n, query):
+        qfilter = query.copy()
+        date = qfilter.pop('date', None)
+        query = {
             'aggs': {'total': {'count': "*"}
                      }
-        })
+        }
+        if qfilter != {}:
+            query.update({'filter': qfilter})
+        res = xata.client.search_and_filter().aggregateTable('news_article', query)
         data = res.json()
         total_articles = data["aggs"]["total"]
-        res = xata.client.search_and_filter().aggregateTable('news_article', {
-            'aggs': {'total': {'count': "*"},
-                     'cost': {'sum': {'column': 'tokens'}}
-                     },
-            'filter': {
-                '$exists': 'embedding'
-            }
-        })
-        data = res.json()
-        embedded_articles = data["aggs"]["total"]
-        total_cost = data['aggs']['cost'] * 0.0004 / 1000
-        res = xata.client.search_and_filter().aggregateTable('news_article', {
-            'aggs': {'total': {'count': "*"}}, 'filter': {
-                '$exists': 'POIs'
-            }})
-        data = res.json()
-        tagged_articles = data["aggs"]["total"]
+        if date:
+            qfilter['date'] = {}
+            end_date = datetime.strptime(date['$lt'], '%Y-%m-%d')
+
+            qfilter['date']['$lt'] = end_date.strftime('%Y-%m-%dT%H:%M:%SZ%z')
+            qfilter['date']['$gt'] = datetime.strptime(date['$gt'], '%Y-%m-%d').strftime('%Y-%m-%dT%H:%M:%SZ%z')
+            query.update({'filter': qfilter})
+            res = xata.client.search_and_filter().aggregateTable('news_article', query)
+            data = res.json()
+            on_date_articles = data["aggs"]["total"]
+        else:
+            on_date_articles = '...'
         results_children = [
-            html.Div(className='', children=[
-                html.H3(className='title is-3', children=[f'Total de artículos: {total_articles}']),
+            html.Div(className='container', children=[
+                html.H3(className='title is-3', children=[f'Total (todas las fechas): {total_articles}']),
+                html.H3(className='title is-3', children=[f'Total en fecha: {on_date_articles}']),
                 #html.H3(className='title is-3', children=[f'Artículos con tags: {tagged_articles} ']),
                 #html.H3(className='title is-3', children=[f'Artículos con embedding: {embedded_articles} ']),
                 #html.H3(className='title is-3', children=[f'Gastado en embedding*: {round(total_cost, 2)} $']),
@@ -336,9 +355,12 @@ def init_callbacks(app):
 
     @app.callback(
         [Output('article_timeline', 'figure')],
-        [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData')]
+        [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData'), State('filter', 'data')]
     )
-    def update_statistics(n, zoom_info):
+    def update_statistics(n, zoom_info, query):
+        qfilter = query.copy()
+        qfilter.pop('publisher.publisher_name', None)
+        qfilter.pop('date', None)
         graphs = []
         total_articles = 0
         for site in ['abc', 'lanacion', 'ultimahora', 'cincodias']:
@@ -349,7 +371,8 @@ def init_callbacks(app):
                         'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
                                  'total': {'count': '*'}}, 'filter': {
                             'source': source
-                        }})
+                        },
+                        'filter': qfilter})
                     if res.status_code == 200:
                         data = res.json()['aggs']['byDay']['values']
                         total_articles += res.json()['aggs']['total']
@@ -359,8 +382,10 @@ def init_callbacks(app):
                         y = [d['$count'] for d in data]
                         graphs.append(dict(x=x, y=y, type='bar', name=source))
                     else:
-                        print(res.text)
+                        # print(res.text)
+                        pass
             else:
+                qfilter.update({'publisher': siteid})
                 res = xata.client.search_and_filter().aggregateTable('news_article', {
                     'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
                              'total': {'count': '*'}},
@@ -377,19 +402,20 @@ def init_callbacks(app):
                         y = [d['$count'] for d in data]
                         graphs.append(dict(x=x, y=y, type='bar', name=site))
                 else:
-                    print(res.text)
-
-        for field in ['embedding', 'POIs']:
-            res = xata.client.search_and_filter().aggregateTable('news_article', {
-                'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}}},
-                'filter': {'$exists': field}
-            })
-            data = res.json()['aggs']['byDay']['values']
-            for d in data:
-                d['$key'] = datetime.strptime(d['$key'], '%Y-%m-%dT%H:%M:%S.%fZ')
-            x = [d['$key'] for d in data]
-            y = [d['$count'] for d in data]
-            graphs.append(dict(x=x, y=y, type='bar', name=field, base=0, opacity=0.5))
+                    # print(res.text)
+                    pass
+        #
+        # for field in ['embedding', 'POIs']:
+        #     res = xata.client.search_and_filter().aggregateTable('news_article', {
+        #         'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}}},
+        #         'filter': {'$exists': field}
+        #     })
+        #     data = res.json()['aggs']['byDay']['values']
+        #     for d in data:
+        #         d['$key'] = datetime.strptime(d['$key'], '%Y-%m-%dT%H:%M:%S.%fZ')
+        #     x = [d['$key'] for d in data]
+        #     y = [d['$count'] for d in data]
+        #     graphs.append(dict(x=x, y=y, type='bar', name=field, base=0, opacity=0.5))
 
         fig = {
             'data': graphs,
@@ -417,9 +443,9 @@ def init_callbacks(app):
                     ]
         if fig:
             fig['layout']['uirevision'] = '1'
-            return fig
+            return [fig]
         else:
-            return None
+            return []
 
 
     @app.callback(
@@ -451,33 +477,28 @@ def init_callbacks(app):
 
 
     @app.callback(
-        [Output("encontrados", "children"),
-         Output('articles', 'data'),
-         Output('search', 'children')],
-        [Input("search", "n_clicks"),
-         State('title_search', 'value'),
-         State('date_search', 'start_date'),
-         State('date_search', 'end_date'),
+        [Output('filter', 'data')],
+        [
+         Input('title_search', 'value'),
+         Input('date_search', 'start_date'),
+         Input('date_search', 'end_date'),
          Input('sel_site', 'value'),
-         State('limit', 'value'),
-         State('body_search', 'value'),
-         State('url_search', 'value'),
-         State('poi_search', 'value')]
+         Input('body_search', 'value'),
+         Input('url_search', 'value'),
+         Input('poi_search', 'value')]
     )
-    def update_search(btn, text, start_date, end_date, site, limit, body, url_search, poi):
+    def update_filter(text, start_date, end_date, site, body, url_search, poi):
         query = {}
         date_q = {}
         if start_date:
-            st_date = datetime.strptime(start_date, '%Y-%m-%d')
+            st_date = start_date
         else:
-            DEFAULT_START_DATE = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
-            st_date = datetime.strptime(DEFAULT_START_DATE, '%Y-%m-%d')
+            st_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
         date_q['$gt'] = st_date
         if end_date:
-            ed_date = datetime.strptime(end_date, '%Y-%m-%d')
+            ed_date = end_date
         else:
-            DEFAULT_END_DATE = datetime.now().strftime('%Y-%m-%d')
-            ed_date = datetime.strptime(DEFAULT_END_DATE, '%Y-%m-%d')
+            ed_date = datetime.now().strftime('%Y-%m-%d')
         date_q['$lt'] = ed_date
         query['date'] = date_q
         if text:
@@ -497,6 +518,24 @@ def init_callbacks(app):
             query['url'] = {'$contains': url_search}
         if poi:
             query['POIs'] = {'$includes': poi}
+        return [query]
+
+
+    @app.callback(
+        [Output("encontrados", "children"),
+         Output('articles', 'data'),
+         Output('search', 'children')],
+        [Input("search", "n_clicks"),
+         State('filter', 'data'),
+         State('limit', 'value')]
+    )
+    def update_articles(btn, query, limit):
+        try:
+            query['date']['$lt'] = datetime.strptime(query['date']['$lt'], '%Y-%m-%d')
+            query['date']['$gt'] = datetime.strptime(query['date']['$gt'], '%Y-%m-%d')
+        except KeyError:
+            query['date'] = {'$lt': datetime.now(),
+                             '$gt': datetime.now()-timedelta(days=1)}
         chunks = 0
         more = True
         cursor = None
