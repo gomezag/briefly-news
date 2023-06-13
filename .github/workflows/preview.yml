@@ -39,4 +39,3 @@ jobs:
         run: |
           cd vercel
           vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --archive=tgz
-          vercel --prod --token=${{ secrets.VERCEL_TOKEN }}
