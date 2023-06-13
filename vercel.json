@@ -2,14 +2,14 @@
     "version": 2,
     "builds": [
         {
-            "src": "dashapp/app.py",
+            "src": "dashapp/wsgi.py",
             "use": "@vercel/python"
         }
     ],
     "routes": [
         {
             "src": "(.*)",
-            "dest": "dashapp/app.py"
+            "dest": "dashapp/wsgi.py"
         }
     ]
 }
