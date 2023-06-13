@@ -13,6 +13,22 @@
     overflow-y: auto;
 }
 
+.container.main{
+    justify-content:center;
+}
+
+.chat-output {
+    min-height: 400px;
+    border-radius: 10px;
+    border: 2px solid;
+    border-color: #c8d7db;
+    margin-top: 15px;
+}
+
+.chat-input {
+    margin-top: 15px;
+}
+
 .dash-spinner {
   background-image: url("https://cdn.dribbble.com/users/1040528/screenshots/5100277/eye.gif");
   background-size: contain;
@@ -73,6 +89,10 @@
 
 .form .field {
     flex: 0 1 0px;
+}
+
+.stats-graph{
+    min-height: 400px;
 }
 
 .clicktable {
