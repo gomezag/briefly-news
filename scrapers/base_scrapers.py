@@ -35,11 +35,12 @@ class ArcPublishingScraper:
 
 
 class HTMLScraper:
+
     def query(self, endpoint):
         url = urlparse.urljoin(self._parameters['website'], endpoint)
         try:
             self.lock.acquire()
-            res = requests.get(url, timeout=30)
+            res = requests.get(url, timeout=5)
         finally:
             self.lock.release()
 

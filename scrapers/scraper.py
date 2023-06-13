@@ -89,15 +89,18 @@ class Scraper:
             :return: parameters as they are read from the database after saving
 
         """
+        self.lock.acquire()
         params, c = self._db.get_or_create('news_publisher', {'publisher_name': self.site})
+        self.lock.release()
 
         new_params = {'publisher_name': str(self.site),
                       'website': str(self.parameters.get('website', None)),
                       'categories': [json.dumps(cat) for cat in self.categories],
                       'endpoints': [f"{key}={json.dumps(value)}" for key, value in self.endpoints.items()]
                       }
-
+        self.lock.acquire()
         new_params = self._db.update('news_publisher', params['id'], new_params)
+        self.lock.release()
         return new_params
 
     def save_article(self, article):
@@ -121,8 +124,11 @@ class Scraper:
         q.pop('subtitle', None)
         q.pop('id', None)
         current, c = self._db.get_or_create('news_article', q)
-        r = self._db.update('news_article', current['id'], article)
-
+        try:
+            self.lock.acquire()
+            r = self._db.update('news_article', current['id'], article)
+        finally:
+            self.lock.release()
         return r
 
     @property
