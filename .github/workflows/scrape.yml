@@ -32,5 +32,4 @@ jobs:
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
       - name: Scrape sites
         run: |
-          make scrape LIMIT=100 BRANCH=main SITES=abc,ultimahora,lanacion
-          make scrape LIMIT=50 BRANCH=main SITES=cincodias
+          make scrape LIMIT=50 BRANCH=main SITES=abc,ultimahora,lanacion,cincodias

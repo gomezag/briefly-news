@@ -315,10 +315,13 @@ def init_callbacks(app):
     @app.callback(
         [Output('resumen', 'children')],
         [Input('heartbeat', 'n_intervals'),
-         State('filter', 'data')]
+         State('filter', 'data'), State('sites', 'data')]
     )
-    def update_summary(n, query):
+    def update_summary(n, query, sites):
         qfilter = query.copy()
+        publisher = qfilter.pop('publisher.publisher_name', None)
+        if publisher:
+            qfilter['publisher'] = sites[publisher]
         date = qfilter.pop('date', None)
         query = {
             'aggs': {'total': {'count': "*"}
@@ -355,24 +358,30 @@ def init_callbacks(app):
 
     @app.callback(
         [Output('article_timeline', 'figure')],
-        [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData'), State('filter', 'data')]
+        [Input('heartbeat', 'n_intervals'), State('article_timeline', 'relayoutData'), State('filter', 'data'),
+         State('sites', 'data')]
     )
-    def update_statistics(n, zoom_info, query):
-        qfilter = query.copy()
-        qfilter.pop('publisher.publisher_name', None)
+    def update_statistics(n, zoom_info, fquery, sites):
+        qfilter = fquery.copy()
         qfilter.pop('date', None)
+        qfilter.pop('POIs', None)
         graphs = []
         total_articles = 0
         for site in ['abc', 'lanacion', 'ultimahora', 'cincodias']:
-            siteid = xata.query('news_publisher', filter={'publisher_name': site})['records'][0]['id']
+            siteid = sites[site]
             if site == 'abc':
                 for source in ['abccolor', 'EFE']:
-                    res = xata.client.search_and_filter().aggregateTable('news_article', {
+                    query = {
                         'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
-                                 'total': {'count': '*'}}, 'filter': {
-                            'source': source
-                        },
-                        'filter': qfilter})
+                                 'total': {'count': '*'}},
+                    }
+                    if source == 'EFE':
+                        query['filter'] = {'source': source}
+                    else:
+                        query['filter'] = {'$not': {'source': 'EFE'}}
+                    if qfilter:
+                        query['filter'].update(qfilter)
+                    res = xata.client.search_and_filter().aggregateTable('news_article', query)
                     if res.status_code == 200:
                         data = res.json()['aggs']['byDay']['values']
                         total_articles += res.json()['aggs']['total']
@@ -382,10 +391,16 @@ def init_callbacks(app):
                         y = [d['$count'] for d in data]
                         graphs.append(dict(x=x, y=y, type='bar', name=source))
                     else:
-                        # print(res.text)
+                        print(res.text)
                         pass
             else:
                 qfilter.update({'publisher': siteid})
+                query = {
+                    'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
+                             'total': {'count': '*'}}
+                }
+                if qfilter:
+                    query.update({'filter': qfilter})
                 res = xata.client.search_and_filter().aggregateTable('news_article', {
                     'aggs': {'byDay': {'dateHistogram': {'column': 'date', 'calendarInterval': 'day'}},
                              'total': {'count': '*'}},
@@ -402,7 +417,7 @@ def init_callbacks(app):
                         y = [d['$count'] for d in data]
                         graphs.append(dict(x=x, y=y, type='bar', name=site))
                 else:
-                    # print(res.text)
+                    print(res.text)
                     pass
         #
         # for field in ['embedding', 'POIs']:
