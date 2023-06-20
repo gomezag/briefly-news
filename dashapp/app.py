@@ -21,6 +21,7 @@ def init_dashboard(server):
 
     # Define the layout of the app
     app.layout = html.Div([
+        html.Script(src="/_vercel/insights/script.js", defer=True),
         html.H1("What's going on man!", className='title is-1'),
         html.Div(className='container main', children=[
             html.Div(className='box', children=[
