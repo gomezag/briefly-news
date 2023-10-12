@@ -220,6 +220,12 @@ def init_dashboard(server):
             'cincodias': xata.query('news_publisher', filter={'publisher_name': 'cincodias'})['records'][0]['id'],
             'ultimahora': xata.query('news_publisher', filter={'publisher_name': 'ultimahora'})['records'][0]['id']
         }),
+        dcc.Store(id='sites-labels', data={
+            'abc': 'ABC Color',
+            'lanacion': 'La Nación',
+            'cincodias': 'Cinco Días',
+            'ultimahora': 'Ultima Hora'
+        }),
         dcc.Store(id='whois-action', data=True),
         dcc.Store(id='filter', data={})
     ])
@@ -251,9 +257,11 @@ def init_callbacks(app):
          State('limit', 'value'),
          State('body_search', 'value'),
          State('url_search', 'value'),
-         State('sites', 'data'),]
+         State('sites', 'data'),
+         State('sites-labels', 'data')]
     )
-    def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit, body, url_search, sites):
+    def ask_table(n, m, question, ask_type, title, start_date, end_date, site, limit, body, url_search, sites,
+                  sites_labels):
         if n or m:
             fquestion = f"La pregunta es: '{question}'. \n Fin de la pregunta. " \
                         f"Responde la pregunta de arriba , en castellano. \n Considera que la fecha de hoy es " \
@@ -304,8 +312,13 @@ def init_callbacks(app):
                 for article in articles:
                     result.append(html.Li(children=[
                         article['date'][:10] + ': ',
-                        html.A(article['title'], href=article['url']),
-                        html.A(next(key for key, value in sites.items() if value==article['publisher'])),
+                        html.P([
+                            html.A(article['title'], href=article['url']),
+                            ' ('+
+                            sites_labels[next(key for key, value in sites.items()
+                                              if value == article['publisher']['id'])]
+                            +')'
+                        ]),
                     ]))
 
                 return answer, result, 'Preguntar'
