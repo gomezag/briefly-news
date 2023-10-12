@@ -305,7 +305,7 @@ def init_callbacks(app):
                     result.append(html.Li(children=[
                         article['date'][:10] + ': ',
                         html.A(article['title'], href=article['url']),
-                        html.P(f"({article['id']})")
+                        html.A(next(key for key, value in sites.items() if value==article['publisher'])),
                     ]))
 
                 return answer, result, 'Preguntar'
