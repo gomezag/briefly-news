@@ -4,10 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 14 * * *'
-  workflow_run:
-    workflows: ["Setup Environment"]
-    types:
-      - completed
 
 env:
   LANG: "es_ES.UTF-8"
@@ -15,11 +11,8 @@ env:
   LC_ALL: "es_ES.UTF-8"
 
 jobs:
-  scrape:
+  scrape_abc:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        source: ["abc", "ultimahora", "lanacion"]
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v4
@@ -36,8 +29,50 @@ jobs:
             .venv
           key: ${{ env.CACHE_KEY }}
 
-      - name: Scrape ${{ matrix.source }}
+      - name: Scrape ABC
         run: |
           echo "XATA_API_KEY=${{ secrets.XATA_API_KEY }}" >> .env
           echo "XATA_DB_URL=${{ secrets.XATA_DB_URL }}" >> .env
-          make scrape LIMIT=50 BRANCH=main SITES=${{ matrix.source }}
+          make scrape LIMIT=50 BRANCH=main SITES=abc
+
+  scrape_ultimahora:
+    runs-on: ubuntu-latest
+    needs: scrape_abc
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore Python packages from cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .venv
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Scrape UltimaHora
+        run: |
+          echo "XATA_API_KEY=${{ secrets.XATA_API_KEY }}" >> .env
+          echo "XATA_DB_URL=${{ secrets.XATA_DB_URL }}" >> .env
+          make scrape LIMIT=50 BRANCH=main SITES=ultimahora
+
+  scrape_lanacion:
+    runs-on: ubuntu-latest
+    needs: scrape_ultimahora
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore Python packages from cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .venv
+          key: ${{ env.CACHE_KEY }}
+
+      - name: Scrape LaNacion
+        run: |
+          echo "XATA_API_KEY=${{ secrets.XATA_API_KEY }}" >> .env
+          echo "XATA_DB_URL=${{ secrets.XATA_DB_URL }}" >> .env
+          make scrape LIMIT=50 BRANCH=main SITES=lanacion
