@@ -42,6 +42,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Compute cache key
+        id: compute-cache-key
+        run: echo "CACHE_KEY=${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}" >> $GITHUB_ENV
+
       - name: Restore Python packages from cache
         uses: actions/cache@v4
         with:
@@ -62,6 +66,10 @@ jobs:
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v4
+
+      - name: Compute cache key
+        id: compute-cache-key
+        run: echo "CACHE_KEY=${{ runner.os }}-pip-${{ hashFiles('**/requirements-dev.txt') }}" >> $GITHUB_ENV
 
       - name: Restore Python packages from cache
         uses: actions/cache@v4
