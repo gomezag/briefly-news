@@ -7,32 +7,37 @@ jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+
       - name: Cache Python packages
         id: cache-python
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
             .venv
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
       - name: Install dependencies
         run: |
-          sudo locale-gen es_ES.UTF-8
-          sudo dpkg-reconfigure locales
+          export LANG=es_ES.UTF-8
           python -m pip install --upgrade pip
           python -m venv .venv
           .venv/bin/pip install -r requirements.txt
-          echo 'XATA_API_KEY = "${{secrets.XATA_API_KEY}}"' >> .env
-          echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
+          
+          echo "XATA_API_KEY=${{ secrets.XATA_API_KEY }}" >> .env
+          echo "XATA_DB_URL=${{ secrets.XATA_DB_URL }}" >> .env
+
       - name: Save cache key
         run: echo "CACHE_KEY=${{ steps.cache-python.outputs.cache-key }}" > cache_key.txt
+
       - name: Upload cache key
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cache-key
           path: cache_key.txt
