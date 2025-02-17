@@ -8,7 +8,7 @@ from threading import Thread
 
 
 class ScrapeThread(Thread):
-    def __init__(self, scraper, category, *args, **kwargs):
+    def __init__(self, scraper, category, limit, *args, **kwargs):
         self.scraper = scraper
         self.category = category
         super(ScrapeThread, self).__init__(*args, **kwargs)
@@ -19,7 +19,7 @@ class ScrapeThread(Thread):
 
         logging.info('Starting thread for category '+str(category)+' on site '+scraper.site)
         try:
-            logging.info("Getting headlines for category "+str(category))
+            logging.info(f"Getting {limit} headlines for category {str(category)}")
             headlines, r = scraper.get_headlines(category, limit=limit, offset=0)
         except Exception as e:
             logging.error(f"Error in category {category}.")
@@ -56,7 +56,7 @@ class ScrapeThread(Thread):
 def scrape_headlines(scraper, limit=15):
     threads = []
     for category in scraper.categories:
-        threads.append(ScrapeThread(scraper, category))
+        threads.append(ScrapeThread(scraper, category, limit))
 
     for t in threads:
         t.daemon = True

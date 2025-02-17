@@ -41,6 +41,7 @@ class ABCScraper(ArcPublishingScraper):
             query['query'].update(**kwargs)
             r = self.query(url, **query).json()
             arts = r['content_elements']
+            
             if len(arts):
                 headlines.extend(arts)
                 i += 100

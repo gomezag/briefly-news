@@ -32,6 +32,7 @@ class UltimaHoraScraper(HTMLScraper):
                 break
 
         articles = [{key: value} for key, value in list(set([tuple(a.items())[0] for a in articles]))]
+        articles = articles[:limit]
         return articles, res
 
     def get_article_body(self, article):

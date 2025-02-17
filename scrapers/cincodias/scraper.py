@@ -42,7 +42,7 @@ class CincoDiasScraper(ArcPublishingScraper):
                                          authors=['5Dias']))
             except Exception:
                 retry = False
-
+        articles = articles[:limit]
         return articles, res
 
     def get_article_body(self, article):

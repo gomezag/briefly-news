@@ -60,7 +60,7 @@ class LaNacionScraper(ArcPublishingScraper):
                 authors=authors,
                 publisher=self.parameters['id'],
             ))
-
+        articles = articles[:limit]
         return articles, r
 
     def get_article_body(self, article):
