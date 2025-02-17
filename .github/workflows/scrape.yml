@@ -38,6 +38,7 @@ jobs:
   scrape_ultimahora:
     runs-on: ubuntu-latest
     needs: scrape_abc
+    if: always()
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +64,7 @@ jobs:
   scrape_lanacion:
     runs-on: ubuntu-latest
     needs: scrape_ultimahora
+    if: always()
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v4
