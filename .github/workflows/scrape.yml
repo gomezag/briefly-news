@@ -1,47 +1,36 @@
+name: Scrape Data
+
 on:
   workflow_dispatch:
   schedule:
     - cron: '0 14 * * *'
-    
+  workflow_run:
+    workflows: ["Setup Environment"]
+    types:
+      - completed
+
 env:
   LANG: "es_ES.UTF-8"
   LANGUAGE: "es_ES:es"
   LC_ALL: "es_ES.UTF-8"
 
 jobs:
-  setup:
+  download-cache-key:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      cache-key: ${{ steps.cache-python.outputs.cache-key }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        id: setup-python
-        uses: actions/setup-python@v4
+      - name: Download cache key
+        uses: actions/download-artifact@v3
         with:
-          python-version: "3.9"
-      - name: Cache Python packages
-        id: cache-python
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cache/pip
-            .venv
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-      - name: Install dependencies
+          name: cache-key
+      - name: Read cache key
+        id: read-cache-key
         run: |
-          sudo locale-gen es_ES.UTF-8
-          sudo dpkg-reconfigure locales
-          python -m pip install --upgrade pip
-          python -m venv .venv
-          .venv/bin/pip install -r requirements.txt
-          echo 'XATA_API_KEY = "${{secrets.XATA_API_KEY}}"' >> .env
-          echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
+          CACHE_KEY=$(cat cache_key.txt)
+          echo "CACHE_KEY=${CACHE_KEY}" >> $GITHUB_ENV
 
   scrape_abc:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: download-cache-key
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v3
@@ -51,14 +40,14 @@ jobs:
           path: |
             ~/.cache/pip
             .venv
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ env.CACHE_KEY }}
       - name: Scrape ABC
         run: |
           .venv/bin/python -m routines.scrape main 50 abc
 
   scrape_ultimahora:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: download-cache-key
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v3
@@ -68,14 +57,14 @@ jobs:
           path: |
             ~/.cache/pip
             .venv
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ env.CACHE_KEY }}
       - name: Scrape UltimaHora
         run: |
           .venv/bin/python -m routines.scrape main 50 ultimahora
 
   scrape_lanacion:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: download-cache-key
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v3
@@ -85,14 +74,14 @@ jobs:
           path: |
             ~/.cache/pip
             .venv
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ env.CACHE_KEY }}
       - name: Scrape LaNacion
         run: |
           .venv/bin/python -m routines.scrape main 50 lanacion
 
   scrape_cincodias:
     runs-on: ubuntu-latest
-    needs: setup
+    needs: download-cache-key
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v3
@@ -102,7 +91,7 @@ jobs:
           path: |
             ~/.cache/pip
             .venv
-          key: ${{ needs.setup.outputs.cache-key }}
+          key: ${{ env.CACHE_KEY }}
       - name: Scrape CincoDias
         run: |
           .venv/bin/python -m routines.scrape main 50 cincodias
