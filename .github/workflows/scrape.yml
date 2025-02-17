@@ -38,4 +38,4 @@ jobs:
 
       - name: Scrape ${{ matrix.source }}
         run: |
-          .venv/bin/python -m routines.scrape main 50 ${{ matrix.source }}
+          make scrape LIMIT=50 BRANCH=main SITES=${{ matrix.source }}

@@ -1,5 +1,5 @@
 # Define variables
-VENV_DIR := venv
+VENV_DIR := .venv
 REQUIREMENTS_FILE := requirements-dev.txt
 BRANCH ?= 'main'
 LIMIT ?= 1
