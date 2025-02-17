@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        source: ["abc", "ultimahora", "lanacion", "cincodias"]
+        source: ["abc", "ultimahora", "lanacion"]
     timeout-minutes: 31
     steps:
       - uses: actions/checkout@v4
