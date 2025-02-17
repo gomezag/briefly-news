@@ -32,12 +32,3 @@ jobs:
           
           echo "XATA_API_KEY=${{ secrets.XATA_API_KEY }}" >> .env
           echo "XATA_DB_URL=${{ secrets.XATA_DB_URL }}" >> .env
-
-      - name: Save cache key
-        run: echo "CACHE_KEY=${{ steps.cache-python.outputs.cache-key }}" > cache_key.txt
-
-      - name: Upload cache key
-        uses: actions/upload-artifact@v4
-        with:
-          name: cache-key
-          path: cache_key.txt
