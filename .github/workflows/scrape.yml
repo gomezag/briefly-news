@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      cache-key: ${{ steps.cache-python.outputs.cache-hit }}
+      cache-key: ${{ steps.cache-python.outputs.cache-key }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -25,15 +25,17 @@ jobs:
         id: cache-python
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: |
+            ~/.cache/pip
+            .venv
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
       - name: Install dependencies
         run: |
           sudo locale-gen es_ES.UTF-8
           sudo dpkg-reconfigure locales
           python -m pip install --upgrade pip
-          make clean
-          make venv
+          python -m venv .venv
+          .venv/bin/pip install -r requirements.txt
           echo 'XATA_API_KEY = "${{secrets.XATA_API_KEY}}"' >> .env
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
 
@@ -46,10 +48,13 @@ jobs:
       - name: Restore Python packages from cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: |
+            ~/.cache/pip
+            .venv
           key: ${{ needs.setup.outputs.cache-key }}
       - name: Scrape ABC
-        run: make scrape LIMIT=50 BRANCH=main SITES=abc
+        run: |
+          .venv/bin/python -m routines.scrape main 50 abc
 
   scrape_ultimahora:
     runs-on: ubuntu-latest
@@ -60,10 +65,13 @@ jobs:
       - name: Restore Python packages from cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: |
+            ~/.cache/pip
+            .venv
           key: ${{ needs.setup.outputs.cache-key }}
       - name: Scrape UltimaHora
-        run: make scrape LIMIT=50 BRANCH=main SITES=ultimahora
+        run: |
+          .venv/bin/python -m routines.scrape main 50 ultimahora
 
   scrape_lanacion:
     runs-on: ubuntu-latest
@@ -74,10 +82,13 @@ jobs:
       - name: Restore Python packages from cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: |
+            ~/.cache/pip
+            .venv
           key: ${{ needs.setup.outputs.cache-key }}
       - name: Scrape LaNacion
-        run: make scrape LIMIT=50 BRANCH=main SITES=lanacion
+        run: |
+          .venv/bin/python -m routines.scrape main 50 lanacion
 
   scrape_cincodias:
     runs-on: ubuntu-latest
@@ -88,7 +99,10 @@ jobs:
       - name: Restore Python packages from cache
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
+          path: |
+            ~/.cache/pip
+            .venv
           key: ${{ needs.setup.outputs.cache-key }}
       - name: Scrape CincoDias
-        run: make scrape LIMIT=50 BRANCH=main SITES=cincodias
+        run: |
+          .venv/bin/python -m routines.scrape main 50 cincodias
