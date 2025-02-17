@@ -1,5 +1,3 @@
-name: Scrape
-
 on:
   workflow_dispatch:
   schedule:
@@ -11,20 +9,25 @@ env:
   LC_ALL: "es_ES.UTF-8"
 
 jobs:
-  build:
+  setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 31
-    strategy:
-      matrix:
-        python-version: ["3.9", ]
-
+    timeout-minutes: 10
+    outputs:
+      cache-key: ${{ steps.cache-python.outputs.cache-hit }}
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
+        id: setup-python
         uses: actions/setup-python@v4
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Setup environment
+          python-version: "3.9"
+      - name: Cache Python packages
+        id: cache-python
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+      - name: Install dependencies
         run: |
           sudo locale-gen es_ES.UTF-8
           sudo dpkg-reconfigure locales
@@ -33,6 +36,59 @@ jobs:
           make venv
           echo 'XATA_API_KEY = "${{secrets.XATA_API_KEY}}"' >> .env
           echo 'XATA_DB_URL = "${{secrets.XATA_DB_URL}}"' >> .env
-      - name: Scrape sites
-        run: |
-          make scrape LIMIT=50 BRANCH=main SITES=abc,ultimahora,lanacion,cincodias
+
+  scrape_abc:
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore Python packages from cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup.outputs.cache-key }}
+      - name: Scrape ABC
+        run: make scrape LIMIT=50 BRANCH=main SITES=abc
+
+  scrape_ultimahora:
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore Python packages from cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup.outputs.cache-key }}
+      - name: Scrape UltimaHora
+        run: make scrape LIMIT=50 BRANCH=main SITES=ultimahora
+
+  scrape_lanacion:
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore Python packages from cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup.outputs.cache-key }}
+      - name: Scrape LaNacion
+        run: make scrape LIMIT=50 BRANCH=main SITES=lanacion
+
+  scrape_cincodias:
+    runs-on: ubuntu-latest
+    needs: setup
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v3
+      - name: Restore Python packages from cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ needs.setup.outputs.cache-key }}
+      - name: Scrape CincoDias
+        run: make scrape LIMIT=50 BRANCH=main SITES=cincodias
