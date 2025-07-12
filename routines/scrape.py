@@ -1,10 +1,9 @@
-import sys
 import logging
-
-from scrapers import Scraper
-from llm.utils import get_related_people
-
+import sys
 from threading import Thread
+
+from llm.utils import get_related_people
+from scrapers import Scraper
 
 
 class ScrapeThread(Thread):

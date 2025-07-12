@@ -1,11 +1,14 @@
-from xata.client import XataClient
-from xata.helpers import BulkProcessor
-from database.exceptions import OperationError
-import os
-from dotenv import load_dotenv
-from .utils import get_project_root
-from xata.helpers import to_rfc339
 import datetime
+import os
+
+import numpy as np
+from dotenv import load_dotenv
+from xata.client import XataClient
+from xata.helpers import BulkProcessor, to_rfc339
+
+from database.exceptions import OperationError
+
+from .utils import get_project_root
 
 env_file = os.path.join(get_project_root(), '.env')
 
@@ -101,6 +104,7 @@ class XataAPI(object):
 
     def get_or_create(self, table, record_dict):
         try:
+            record_dict.pop('body_vector', None)
             record_dict = {k: v for k, v in record_dict.items() if v}
             record = self.query(table, filter=record_dict)['records']
             if len(record) > 1:
@@ -111,7 +115,7 @@ class XataAPI(object):
         except (FileNotFoundError, IndexError):
             record = self.create(table, record_dict)
             created = True
-        
+
         return record, created
 
     def get_table_schema(self, table_name):
@@ -151,8 +155,8 @@ class XataAPI(object):
         return True
 
     def migrate_table(self, dest, table):
-        if (self.branch == dest.branch and 
-            self.client.workspace_id == dest.client.workspace_id and 
+        if (self.branch == dest.branch and
+            self.client.workspace_id == dest.client.workspace_id and
             self.client.branch().get_details().get('databaseName') == dest.client.branch().get_details().get('databaseName')):
             raise OperationError('Source and destination branches are the same!')
         bp = BulkProcessor(dest.client)

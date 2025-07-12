@@ -1,8 +1,10 @@
-from bs4 import BeautifulSoup
-from scrapers.base_scrapers import ArcPublishingScraper
-import requests
-import locale
 import datetime
+import locale
+
+import requests
+from bs4 import BeautifulSoup
+
+from scrapers.base_scrapers import ArcPublishingScraper
 
 
 class CincoDiasScraper(ArcPublishingScraper):
